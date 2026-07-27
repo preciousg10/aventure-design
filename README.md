@@ -1,6 +1,6 @@
 # aventure-design
 
-Design workspace for **Aventure** — an AI-powered group experience app for Gen Z.
+Design workspace for **Aventure**, an AI-powered group experience app for Gen Z.
 
 - **Product brain:** [`CLAUDE.md`](CLAUDE.md)
 - **Screen tracker:** [`SCREENS.md`](SCREENS.md)
