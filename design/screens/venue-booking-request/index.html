@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventure for Venues: New booking request</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+  /* ===== Golden Hour tokens (venue app) — mirrors design/tokens/tokens.css,
+          with --secondary overridden to the venue-app canonical #2D6A4F ===== */
+  :root{
+    --bg:#FBF6EE;
+    --card:#FFFFFF;
+    --primary:#E2693E;
+    --secondary:#2D6A4F;   /* venue-app canonical (consumer app uses #138A6B) */
+    --success:#3D8060;
+    --ink:#2A2521;
+    --muted:#7A6E68;
+    --divider:#ECE4D8;
+    --danger:#A2462A;      /* error text — warm, AA on card */
+    --font-display:"Fraunces",Georgia,serif;
+    --font-body:"Satoshi","Inter",Arial,sans-serif;
+    --radius-button:14px;
+    --radius-card:16px;
+    --radius-input:12px;
+    --radius-pill:100px;
+    --shadow-card:0 1px 2px rgba(42,37,33,0.05), 0 8px 24px rgba(42,37,33,0.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  /* Prototype is view-only: non-interactive text shows no I-beam and can't be selected. */
+  html{-webkit-tap-highlight-color:transparent;}
+  body{cursor:default;}
+  *{-webkit-user-select:none;user-select:none;}
+  input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;cursor:auto;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:16px;
+    line-height:1.4;
+    min-height:100vh;
+  }
+  .num{font-variant-numeric:tabular-nums;}
+
+  /* ===== Minimal top bar (focused screen, not the dashboard shell) ===== */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:18px 22px;border-bottom:0.5px solid var(--divider);
+  }
+  .wordmark{display:flex;align-items:baseline;gap:8px;}
+  .wordmark .name{font-family:var(--font-display);font-weight:700;font-size:21px;color:var(--ink);}
+  .wordmark .tag{
+    font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;
+    color:var(--secondary);background:rgba(45,106,79,0.10);
+    padding:3px 8px;border-radius:var(--radius-pill);
+  }
+
+  /* ===== Centered single-purpose column ===== */
+  .stage{
+    width:100%;max-width:560px;margin:0 auto;
+    padding:36px 22px 64px;
+    display:flex;flex-direction:column;gap:14px;
+  }
+  .stage .kicker{
+    font-size:11px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;
+    color:var(--secondary);text-align:center;
+  }
+
+  /* ===== Request card ===== */
+  .card{
+    background:var(--card);
+    border:0.5px solid var(--divider);
+    border-radius:var(--radius-card);
+    box-shadow:var(--shadow-card);
+    padding:28px 28px 26px;
+  }
+  .card h1{
+    font-family:var(--font-display);font-weight:600;font-size:27px;line-height:1.15;
+    color:var(--ink);margin-bottom:6px;
+  }
+  .card .lede{color:var(--muted);font-size:14.5px;margin-bottom:20px;}
+
+  /* ---- Countdown ---- */
+  .timer{
+    display:flex;align-items:center;gap:14px;
+    padding:16px 18px;margin-bottom:22px;
+    background:var(--bg);border:0.5px solid var(--divider);border-radius:var(--radius-input);
+    border-left:3px solid var(--primary);
+  }
+  .timer .ring{
+    width:58px;height:58px;border-radius:var(--radius-pill);flex:0 0 auto;
+    background:rgba(226,105,62,0.12);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-body);font-weight:700;font-size:18px;color:var(--ink);
+  }
+  .timer .clock-text .big{font-size:13.5px;font-weight:700;color:var(--ink);}
+  .timer .clock-text .small{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.35;}
+  .timer.done{border-left-color:var(--muted);}
+  .timer.done .ring{background:rgba(122,110,104,0.14);color:var(--muted);font-size:13px;}
+
+  /* ---- Detail rows ---- */
+  .details{list-style:none;display:flex;flex-direction:column;}
+  .details li{
+    display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+    padding:13px 0;border-top:0.5px solid var(--divider);
+  }
+  .details li:first-child{border-top:none;}
+  .details .k{font-size:13px;font-weight:500;color:var(--muted);flex:0 0 auto;}
+  .details .v{font-size:15px;font-weight:700;color:var(--ink);text-align:right;}
+
+  /* Payment row — success-tinted "already paid" treatment */
+  .pay{
+    display:flex;align-items:center;gap:12px;
+    margin-top:16px;padding:14px 16px;
+    background:rgba(61,128,96,0.10);border:0.5px solid rgba(61,128,96,0.22);
+    border-radius:var(--radius-input);
+  }
+  .pay .badge{
+    width:34px;height:34px;border-radius:var(--radius-pill);flex:0 0 auto;
+    background:var(--success);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .pay .amt{font-size:17px;font-weight:700;color:var(--ink);}
+  .pay .note{font-size:12.5px;font-weight:700;color:var(--success);margin-top:1px;}
+
+  /* Notes block */
+  .notes{
+    margin-top:16px;padding:14px 16px;
+    background:var(--bg);border:0.5px solid var(--divider);border-radius:var(--radius-input);
+  }
+  .notes .nl{
+    font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:8px;
+  }
+  .notes ul{list-style:none;display:flex;flex-direction:column;gap:8px;}
+  .notes li{display:flex;align-items:flex-start;gap:9px;font-size:14px;color:var(--ink);line-height:1.4;}
+  .notes li svg{width:17px;height:17px;flex:0 0 auto;margin-top:1px;stroke-width:2.1;}
+  .notes li.access svg{color:var(--secondary);}
+  .notes li.allergy svg{color:var(--success);}
+
+  /* ---- Action buttons ---- */
+  .actions{display:flex;flex-direction:column;gap:12px;margin-top:24px;}
+  .btn{
+    display:flex;align-items:center;justify-content:center;
+    width:100%;height:54px;
+    font-family:var(--font-body);font-weight:700;font-size:15.5px;
+    border-radius:var(--radius-button);cursor:pointer;text-decoration:none;
+    border:none;transition:filter .15s,background .15s;
+  }
+  .btn-accept{background:var(--primary);color:var(--ink);}  /* never white on terracotta */
+  .btn-accept:hover{filter:brightness(0.97);}
+  .btn-accept:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(42,37,33,0.45);}
+  .btn-decline{background:transparent;color:var(--ink);border:1px solid var(--divider);font-weight:500;}
+  .btn-decline:hover{background:var(--bg);}
+  .btn-decline:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(122,110,104,0.40);}
+  .btn[disabled]{opacity:0.45;cursor:default;pointer-events:none;}
+
+  /* ---- Resolved (accepted / declined) states ---- */
+  .resolved{display:none;text-align:center;padding:6px 4px 4px;}
+  .resolved.show{display:block;}
+  .resolved .mark{
+    width:64px;height:64px;border-radius:var(--radius-pill);margin:0 auto 18px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .resolved.accepted .mark{background:rgba(61,128,96,0.12);color:var(--success);}
+  .resolved.declined .mark{background:rgba(122,110,104,0.14);color:var(--muted);}
+  .resolved h2{font-family:var(--font-display);font-weight:600;font-size:23px;margin-bottom:8px;color:var(--ink);}
+  .resolved p{color:var(--muted);font-size:14.5px;max-width:42ch;margin:0 auto 20px;}
+  .resolved a.link{
+    display:inline-flex;align-items:center;gap:7px;
+    font-size:14px;font-weight:700;color:var(--secondary);text-decoration:none;
+    padding:10px 4px;border-radius:8px;
+  }
+  .resolved a.link:hover{text-decoration:underline;}
+  .resolved a.link:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(45,106,79,0.35);}
+
+  .req-body.hidden{display:none;}
+
+  /* Non-interactive text should not show the text-edit I-beam */
+  h1,h2,.kicker,.wordmark,.tag,.lede,.timer,.details,.pay,.notes,.resolved p{cursor:default;user-select:none;}
+
+  /* ===== Responsive ===== */
+  @media (max-width:480px){
+    .topbar{padding:14px 16px;}
+    .stage{padding:24px 14px 48px;}
+    .card{padding:22px 18px 22px;}
+    .card h1{font-size:24px;}
+    .details li{flex-wrap:wrap;gap:2px 16px;}
+    .details .v{text-align:left;}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wordmark"><span class="name">Aventure</span><span class="tag">For Venues</span></div>
+  </header>
+
+  <main class="stage">
+    <div class="kicker">Booking request</div>
+
+    <section class="card" aria-live="polite">
+      <!-- ===== Live request ===== -->
+      <div class="req-body" id="reqBody">
+        <h1>New booking request</h1>
+        <p class="lede">A crew was just matched to your venue. Accept to lock it in.</p>
+
+        <div class="timer" id="timer">
+          <div class="ring num" id="ringText" aria-hidden="true">9:43</div>
+          <div class="clock-text">
+            <div class="big"><span class="num" id="timeText">9:43</span> left to respond</div>
+            <div class="small" id="timerNote">If you do not respond, we route this crew to the next venue so they never wait.</div>
+          </div>
+        </div>
+
+        <ul class="details">
+          <li><span class="k">Experience</span><span class="v">Prohibition</span></li>
+          <li><span class="k">Date and time</span><span class="v">Thursday, June 25, 7:30 PM</span></li>
+          <li><span class="k">Group size</span><span class="v">8 guests</span></li>
+          <li><span class="k">Crew leader</span><span class="v">Marcus T.</span></li>
+        </ul>
+
+        <div class="pay">
+          <span class="badge" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          </span>
+          <div>
+            <div class="amt num">$360</div>
+            <div class="note">Already paid by the crew. You just accept.</div>
+          </div>
+        </div>
+
+        <div class="notes">
+          <div class="nl">Notes from the crew</div>
+          <ul>
+            <li class="access">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M19 13h-4l-1 7M5 9l4-1h4l1 4M9 8v4"/><circle cx="11" cy="18" r="3.5"/></svg>
+              One guest uses a wheelchair, step-free access needed.
+            </li>
+            <li class="allergy">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+              No allergies flagged.
+            </li>
+          </ul>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn btn-accept" id="acceptBtn">Accept booking</button>
+          <button type="button" class="btn btn-decline" id="declineBtn">Decline</button>
+        </div>
+      </div>
+
+      <!-- ===== Accepted ===== -->
+      <div class="resolved accepted" id="acceptedState">
+        <div class="mark" aria-hidden="true">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <h2>Booked. We told the crew.</h2>
+        <p>Marcus and his group of 8 are confirmed for Prohibition on Thursday, June 25 at 7:30 PM.</p>
+        <a class="link" href="../venue-booking-detail/index.html">
+          View booking details
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+
+      <!-- ===== Declined ===== -->
+      <div class="resolved declined" id="declinedState">
+        <div class="mark" aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </div>
+        <h2>Declined.</h2>
+        <p>We will route this crew to another venue. Nothing else for you to do here.</p>
+        <a class="link" href="../venue-dashboard/index.html">
+          Back to dashboard
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+    </section>
+  </main>
+
+<script>
+  // ===== 10-minute countdown (starts near the end so it reads as live) =====
+  var remaining = 9 * 60 + 43; // 9:43
+  var tick = null;
+
+  var ringText  = document.getElementById("ringText");
+  var timeText  = document.getElementById("timeText");
+  var timerEl   = document.getElementById("timer");
+  var timerNote = document.getElementById("timerNote");
+
+  function fmt(s){
+    var m = Math.floor(s / 60);
+    var sec = s % 60;
+    return m + ":" + String(sec).padStart(2, "0");
+  }
+
+  function render(){
+    var t = fmt(remaining);
+    ringText.textContent = t;
+    timeText.textContent = t;
+  }
+
+  function timeOut(){
+    clearInterval(tick);
+    remaining = 0;
+    ringText.textContent = "0:00";
+    timeText.textContent = "0:00";
+    timerEl.classList.add("done");
+    document.querySelector("#timer .big").innerHTML =
+      '<span class="num" id="timeText">0:00</span> request timed out';
+    timerNote.textContent =
+      "No response in time, so we routed this crew to the next venue. They never had to wait.";
+    var a = document.getElementById("acceptBtn");
+    var d = document.getElementById("declineBtn");
+    if (a) a.disabled = true;
+    if (d) d.disabled = true;
+  }
+
+  function startTimer(){
+    render();
+    tick = setInterval(function(){
+      remaining -= 1;
+      if (remaining <= 0){ timeOut(); return; }
+      render();
+    }, 1000);
+  }
+
+  function stopTimer(){ if (tick) clearInterval(tick); }
+
+  startTimer();
+
+  // ===== Accept / Decline =====
+  var reqBody       = document.getElementById("reqBody");
+  var acceptedState = document.getElementById("acceptedState");
+  var declinedState = document.getElementById("declinedState");
+
+  function resolve(stateEl){
+    stopTimer();
+    reqBody.classList.add("hidden");
+    stateEl.classList.add("show");
+    document.querySelector(".kicker").textContent = "Booking request";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  document.getElementById("acceptBtn").addEventListener("click", function(){
+    resolve(acceptedState);
+  });
+  document.getElementById("declineBtn").addEventListener("click", function(){
+    resolve(declinedState);
+  });
+</script>
+</body>
+</html>

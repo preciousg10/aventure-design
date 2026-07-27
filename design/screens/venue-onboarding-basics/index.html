@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventure for Venues: Set up your venue (Step 1 of 4)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+  /* ===== Golden Hour tokens (venue app) — mirrors design/tokens/tokens.css,
+          with --secondary overridden to the venue-app canonical #2D6A4F ===== */
+  :root{
+    --bg:#FBF6EE;
+    --card:#FFFFFF;
+    --primary:#E2693E;
+    --secondary:#2D6A4F;   /* venue-app canonical (consumer app uses #138A6B) */
+    --success:#3D8060;
+    --ink:#2A2521;
+    --muted:#7A6E68;
+    --divider:#ECE4D8;
+    --danger:#A2462A;      /* error text — warm, AA on card */
+    --font-display:"Fraunces",Georgia,serif;
+    --font-body:"Satoshi","Inter",Arial,sans-serif;
+    --radius-button:14px;
+    --radius-card:16px;
+    --radius-input:12px;
+    --radius-pill:100px;
+    --shadow-card:0 1px 2px rgba(42,37,33,0.05), 0 8px 24px rgba(42,37,33,0.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  /* Prototype is view-only: non-interactive text shows no I-beam and can't be selected. */
+  html{-webkit-tap-highlight-color:transparent;}
+  body{cursor:default;}
+  *{-webkit-user-select:none;user-select:none;}
+  input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;cursor:auto;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:16px;
+    line-height:1.4;
+    min-height:100vh;
+  }
+
+  .shell{
+    max-width:1040px;
+    margin:0 auto;
+    padding:40px 28px 64px;
+    display:grid;
+    grid-template-columns:320px 1fr;
+    gap:48px;
+    align-items:start;
+  }
+
+  /* ---- Left context panel ---- */
+  .context{position:sticky;top:40px;}
+  .wordmark{display:flex;align-items:baseline;gap:8px;margin-bottom:32px;}
+  .wordmark .name{font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--ink);}
+  .wordmark .tag{
+    font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;
+    color:var(--secondary);background:rgba(45,106,79,0.10);
+    padding:3px 8px;border-radius:var(--radius-pill);
+  }
+  .context h1{
+    font-family:var(--font-display);font-weight:600;font-size:28px;
+    line-height:1.2;color:var(--ink);margin-bottom:10px;
+  }
+  .context p.lede{color:var(--muted);font-size:15px;max-width:30ch;}
+
+  /* ---- Vertical stepper ---- */
+  .stepper{list-style:none;margin:28px 0 0;display:flex;flex-direction:column;gap:2px;}
+  .stepper li{display:flex;align-items:center;gap:12px;padding:8px 0;color:var(--muted);font-size:14px;font-weight:500;}
+  .stepper .dot{
+    width:24px;height:24px;border-radius:var(--radius-pill);
+    border:1.5px solid var(--divider);display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:700;color:var(--muted);background:var(--card);flex:0 0 auto;
+  }
+  .stepper li.active{color:var(--ink);}
+  .stepper li.active .dot{background:var(--secondary);border-color:var(--secondary);color:#fff;}
+
+  /* ---- Form card ---- */
+  .form-card{
+    background:var(--card);
+    border:0.5px solid var(--divider);
+    border-radius:var(--radius-card);
+    box-shadow:var(--shadow-card);
+    padding:32px;
+    max-width:560px;
+  }
+  .form-card h2{font-family:var(--font-display);font-weight:600;font-size:22px;margin-bottom:6px;}
+  .concierge{
+    color:var(--muted);font-size:13px;margin-bottom:24px;
+    padding:10px 12px;background:var(--bg);border-radius:var(--radius-input);
+    border:0.5px solid var(--divider);
+  }
+
+  .field{margin-bottom:20px;}
+  .field > label{
+    display:block;font-size:11px;font-weight:500;letter-spacing:0.07em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:7px;
+  }
+  .field .help{display:block;font-size:13px;color:var(--muted);margin-top:6px;}
+
+  /* Non-interactive text should not show the text-edit I-beam (it read as editable) */
+  h1,h2,.wordmark,.tag,.stepper,.field>label,.lede,.concierge,.help{cursor:default;user-select:none;}
+
+  /* Address search field with typeahead suggestions */
+  .search-field{position:relative;}
+  .search-icon{position:absolute;left:14px;top:24px;transform:translateY(-50%);pointer-events:none;color:var(--muted);}
+  .search-field input[type=text]{padding-left:40px;}
+  .suggestions{
+    list-style:none;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;
+    background:var(--card);border:1px solid var(--divider);border-radius:var(--radius-input);
+    box-shadow:var(--shadow-card);overflow:hidden;display:none;
+  }
+  .suggestions.show{display:block;}
+  .suggestions li{
+    display:flex;gap:10px;align-items:center;padding:11px 14px;font-size:15px;color:var(--ink);
+    cursor:pointer;border-bottom:0.5px solid var(--divider);
+  }
+  .suggestions li:last-child{border-bottom:none;}
+  .suggestions li:hover,.suggestions li.active{background:var(--bg);}
+  .suggestions li .pin{color:var(--muted);flex:0 0 auto;}
+  .suggestions li.empty{color:var(--muted);font-size:13px;cursor:default;}
+  input[type=text],input[type=tel],select{
+    width:100%;height:48px;padding:0 14px;
+    font-family:var(--font-body);font-size:16px;color:var(--ink);
+    background:var(--card);border:1px solid var(--divider);border-radius:var(--radius-input);
+    transition:border-color .15s,box-shadow .15s;
+  }
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237A6E68' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px;}
+  input:focus,select:focus{
+    outline:none;border-color:var(--secondary);
+    box-shadow:0 0 0 3px rgba(45,106,79,0.18);
+  }
+  .field.invalid input,.field.invalid select{border-color:var(--danger);}
+  .field.invalid input:focus,.field.invalid select:focus{box-shadow:0 0 0 3px rgba(162,70,42,0.18);}
+  .error-msg{display:none;color:var(--danger);font-size:13px;margin-top:6px;font-weight:500;}
+  .field.invalid .error-msg{display:block;}
+
+  /* doorbell row with verify affordance */
+  .doorbell-row{display:flex;gap:10px;align-items:stretch;}
+  .doorbell-row input{flex:1;}
+  .btn-verify{
+    flex:0 0 auto;height:48px;padding:0 16px;white-space:nowrap;
+    background:transparent;color:var(--secondary);
+    border:1px solid var(--secondary);border-radius:var(--radius-input);
+    font-family:var(--font-body);font-weight:500;font-size:14px;cursor:pointer;
+    transition:background .15s;
+  }
+  .btn-verify:hover{background:rgba(45,106,79,0.08);}
+  .btn-verify:disabled{opacity:.5;cursor:not-allowed;}
+  .verify-state{display:none;align-items:center;gap:6px;margin-top:8px;font-size:13px;font-weight:500;color:var(--success);}
+  .verify-state.show{display:flex;}
+
+  .btn-primary{
+    width:100%;height:52px;margin-top:8px;
+    background:var(--primary);color:var(--ink);  /* never white on terracotta */
+    font-family:var(--font-body);font-weight:500;font-size:15px;
+    border:none;border-radius:var(--radius-button);cursor:pointer;
+    transition:filter .15s;
+  }
+  .btn-primary:hover{filter:brightness(0.97);}
+  .btn-primary:disabled{opacity:.7;cursor:progress;}
+
+  /* Keyboard focus rings on buttons — match the inputs' jade ring, ink ring on terracotta */
+  .btn-verify:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(45,106,79,0.35);}
+  .btn-primary:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(42,37,33,0.45);}
+
+  .hidden{display:none;}
+
+  /* ---- Responsive: concierge fills this on a phone/tablet in person ---- */
+  @media (max-width:760px){
+    .shell{grid-template-columns:1fr;gap:28px;padding:28px 20px 48px;}
+    .context{position:static;}
+    .context p.lede{max-width:none;}
+    .stepper{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin-top:18px;}
+    .stepper li{padding:0;}
+    .form-card{padding:24px 20px;max-width:none;}
+  }
+
+  /* Respect reduced-motion preference: drop all transitions */
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+  <main class="shell">
+    <aside class="context">
+      <div class="wordmark">
+        <span class="name">Aventure</span>
+        <span class="tag">for venues</span>
+      </div>
+      <h1>Let's set up your venue</h1>
+      <p class="lede">A few basics to get you on the map. You can change any of this later.</p>
+      <ol class="stepper" aria-label="Onboarding progress">
+        <li class="active"><span class="dot">1</span>Basics</li>
+        <li><span class="dot">2</span>Offerings</li>
+        <li><span class="dot">3</span>Availability</li>
+        <li><span class="dot">4</span>Done</li>
+      </ol>
+    </aside>
+
+    <section class="form-card">
+      <h2>Account and venue basics</h2>
+      <p class="concierge">Setting this up with a venue in person? You can fill it in on their behalf, then hand it over.</p>
+
+      <form id="v1form" novalidate>
+        <div class="field" id="f-name">
+          <label for="venue-name">Venue name</label>
+          <input type="text" id="venue-name" name="venue-name" autocomplete="organization" required>
+          <span class="error-msg">Enter the venue name.</span>
+        </div>
+
+        <div class="field" id="f-type">
+          <label for="venue-type">Venue type</label>
+          <select id="venue-type" name="venue-type" required>
+            <option value="" selected disabled hidden>Choose a type</option>
+            <option>Escape room</option>
+            <option>Bouldering gym</option>
+            <option>Axe throwing</option>
+            <option>Arcade</option>
+            <option value="Other">Other</option>
+          </select>
+          <span class="error-msg">Choose a venue type.</span>
+        </div>
+
+        <div class="field hidden" id="f-type-other">
+          <label for="venue-type-other">Tell us the type</label>
+          <input type="text" id="venue-type-other" name="venue-type-other">
+          <span class="error-msg">Describe the venue type.</span>
+        </div>
+
+        <div class="field" id="f-address">
+          <label for="venue-address">Address</label>
+          <div class="search-field">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+            <input type="text" id="venue-address" name="venue-address" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="address-suggestions" placeholder="Start typing the venue address" required>
+            <ul class="suggestions" id="address-suggestions" role="listbox"></ul>
+          </div>
+          <span class="error-msg">Enter the venue address.</span>
+        </div>
+
+        <div class="field" id="f-contact">
+          <label for="contact-name">Contact name</label>
+          <input type="text" id="contact-name" name="contact-name" autocomplete="name" required>
+          <span class="error-msg">Enter a contact name.</span>
+        </div>
+
+        <div class="field" id="f-sms">
+          <label for="sms-number">Mobile number for bookings</label>
+          <div class="doorbell-row">
+            <input type="tel" id="sms-number" name="sms-number" inputmode="tel" autocomplete="tel" placeholder="(555) 123 4567" required>
+            <button type="button" class="btn-verify" id="verify-btn">Verify number</button>
+          </div>
+          <span class="help">This is where we text you when a crew wants to book. Tap the text to accept. Get it right and you never miss a group.</span>
+          <span class="error-msg">Enter a valid mobile number (at least 10 digits).</span>
+          <span class="verify-state" id="verify-state">Test text sent. Reply YES to confirm this number receives bookings.</span>
+        </div>
+
+        <button type="submit" class="btn-primary" id="submit-btn">Continue</button>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    // Stub only — no backend. Demonstrates the resolved states from /autoplan review.
+    const form = document.getElementById('v1form');
+    const typeSel = document.getElementById('venue-type');
+    const otherField = document.getElementById('f-type-other');
+    const otherInput = document.getElementById('venue-type-other');
+    const smsInput = document.getElementById('sms-number');
+    const verifyBtn = document.getElementById('verify-btn');
+    const verifyState = document.getElementById('verify-state');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // Carry the venue name through from V0a auth, if present.
+    const carriedVenue = new URLSearchParams(location.search).get('venue');
+    if (carriedVenue) document.getElementById('venue-name').value = carriedVenue;
+
+    // "Other" reveals a free-text field
+    typeSel.addEventListener('change', () => {
+      const isOther = typeSel.value === 'Other';
+      otherField.classList.toggle('hidden', !isOther);
+      otherInput.required = isOther;
+      if (!isOther) clearError(otherField);
+    });
+
+    const digits = s => (s.match(/\d/g) || []).length;
+
+    function setError(fieldEl, on){ fieldEl.classList.toggle('invalid', on); }
+    function clearError(fieldEl){ fieldEl.classList.remove('invalid'); }
+
+    function validateField(input){
+      const field = input.closest('.field');
+      let ok = true;
+      if (input === smsInput) ok = digits(input.value) >= 10;
+      else if (input.required) ok = input.value.trim() !== '';
+      setError(field, !ok);
+      return ok;
+    }
+
+    // Validate on blur once touched
+    form.querySelectorAll('input,select').forEach(el => {
+      el.addEventListener('blur', () => { if (el.required) validateField(el); });
+    });
+
+    // Stubbed verify affordance — real test-text is a backend concern (deferred)
+    verifyBtn.addEventListener('click', () => {
+      if (digits(smsInput.value) < 10){ validateField(smsInput); smsInput.focus(); return; }
+      verifyBtn.disabled = true;
+      verifyBtn.textContent = 'Sending…';
+      setTimeout(() => {
+        verifyState.classList.add('show');
+        verifyBtn.textContent = 'Resend test';
+        verifyBtn.disabled = false;
+      }, 700);
+    });
+
+    // Address typeahead (stubbed — real Google Places needs an API key + backend)
+    const addrInput = document.getElementById('venue-address');
+    const addrBox = document.getElementById('address-suggestions');
+    const SAMPLE_ADDRESSES = [
+      '12 Greenpoint Ave, Brooklyn, NY 11222',
+      '880 Mission St, San Francisco, CA 94103',
+      '245 W 4th St, Austin, TX 78701',
+      '1500 Pearl St, Boulder, CO 80302',
+      '77 Newbury St, Boston, MA 02116',
+      '330 N State St, Chicago, IL 60654',
+      '1100 Congress Ave, Austin, TX 78701',
+      '600 E Grand Ave, Chicago, IL 60611'
+    ];
+    const pinSVG = '<svg class="pin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+
+    function closeSuggestions(){
+      addrBox.classList.remove('show');
+      addrInput.setAttribute('aria-expanded', 'false');
+    }
+    function renderSuggestions(q){
+      const query = q.trim().toLowerCase();
+      addrBox.innerHTML = '';
+      if (!query){ closeSuggestions(); return; }
+      const matches = SAMPLE_ADDRESSES.filter(a => a.toLowerCase().includes(query)).slice(0, 5);
+      if (matches.length === 0){
+        const li = document.createElement('li');
+        li.className = 'empty';
+        li.textContent = 'No demo matches. Real address search arrives with the backend.';
+        addrBox.appendChild(li);
+      } else {
+        matches.forEach(a => {
+          const li = document.createElement('li');
+          li.setAttribute('role', 'option');
+          li.innerHTML = pinSVG + '<span>' + a + '</span>';
+          // mousedown fires before the input's blur, so the value is set before blur-validation
+          li.addEventListener('mousedown', (ev) => {
+            ev.preventDefault();
+            addrInput.value = a;
+            closeSuggestions();
+            validateField(addrInput);
+          });
+          addrBox.appendChild(li);
+        });
+      }
+      addrBox.classList.add('show');
+      addrInput.setAttribute('aria-expanded', 'true');
+    }
+    addrInput.addEventListener('input', () => renderSuggestions(addrInput.value));
+    addrInput.addEventListener('focus', () => { if (addrInput.value.trim()) renderSuggestions(addrInput.value); });
+    addrInput.addEventListener('blur', () => setTimeout(closeSuggestions, 120));
+    addrInput.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSuggestions(); });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const required = [...form.querySelectorAll('[required]')];
+      const results = required.map(validateField);
+      if (results.includes(false)){
+        form.querySelector('.field.invalid input, .field.invalid select')?.focus();
+        return;
+      }
+      // Submit/loading state — pattern in place for when the backend lands
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving…';
+      setTimeout(() => { window.location.href = '../venue-offerings/index.html'; }, 700);
+    });
+  </script>
+</body>
+</html>

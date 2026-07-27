@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventure — Crew Home (Empty + Active)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== Aventure tokens (mirrors design/tokens/tokens.css) ===== */
+  :root{
+    --canvas:#fcfaf5;
+    --olive:#1a3300;
+    --yellow:#ffe95c;
+    --black:#000000;
+    --light-gray:#f1f1f1;
+    --border-gray:#b6b6b6;
+    --orange:#cb5521;
+    --sage:#d5f5c2;
+    --font-display:"Bricolage Grotesque",system-ui,sans-serif;
+    --font-body:"Inter",Arial,sans-serif;
+    --radius-card:14px;
+    --radius-pill:9999px;
+    --shadow-card:rgba(26,51,0,0.06) 0px 2px 8px 0px, rgba(26,51,0,0.04) 0px 1px 2px 0px;
+    --shadow-cta:rgba(26,51,0,0.20) 0px 8px 20px -6px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:#e9e4d8;
+    font-family:var(--font-body);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:40px 24px 64px;
+    gap:8px;
+  }
+  .page-head{text-align:center;color:#3c4a2e;margin-bottom:16px;}
+  .page-head h1{font-family:var(--font-display);font-weight:800;font-size:24px;color:var(--olive);letter-spacing:0.01em;}
+  .page-head p{font-size:13px;color:#6b6b6b;margin-top:4px;}
+  .stage{display:flex;gap:48px;flex-wrap:wrap;justify-content:center;align-items:flex-start;}
+  .frame-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .frame-label{font-size:12px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#6b6b6b;}
+  .frame-label b{color:var(--olive);}
+
+  /* ===== Phone frame 390x844 ===== */
+  .phone{
+    width:390px;height:844px;
+    background:var(--canvas);
+    border-radius:46px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 0 0 10px #11140e, 0 24px 60px -12px rgba(0,0,0,0.45);
+  }
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;}
+
+  /* status bar */
+  .statusbar{height:54px;flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 8px;font-size:15px;font-weight:600;color:var(--olive);}
+  .statusbar .icons{display:flex;gap:7px;align-items:center;}
+  .statusbar svg{display:block;}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:128px;height:32px;background:#11140e;border-radius:0 0 18px 18px;z-index:5;}
+
+  /* scroll body */
+  .body{flex:1 1 auto;overflow:hidden;display:flex;flex-direction:column;padding:6px 22px 0;}
+  .scroll{flex:1 1 auto;overflow-y:auto;padding-bottom:18px;}
+  .scroll::-webkit-scrollbar{display:none;}
+
+  /* header */
+  .top{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0 14px;}
+  .eyebrow{font-size:13px;font-weight:500;color:#7c8366;letter-spacing:0.02em;}
+  .crew-name{font-family:var(--font-display);font-weight:800;font-size:32px;line-height:1.05;color:var(--olive);letter-spacing:0.005em;margin-top:2px;}
+  .icon-btn{width:42px;height:42px;border-radius:50%;background:#fff;border:1px solid #ece5d6;display:flex;align-items:center;justify-content:center;color:var(--olive);box-shadow:var(--shadow-card);flex:0 0 auto;}
+
+  /* avatar row */
+  .crew-row{display:flex;gap:14px;padding:4px 0 18px;}
+  .member{display:flex;flex-direction:column;align-items:center;gap:7px;width:62px;}
+  .avatar{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:19px;color:#fff;position:relative;box-shadow:var(--shadow-card);}
+  .a1{background:linear-gradient(150deg,#2f5d2a,#1a3300);}
+  .a2{background:linear-gradient(150deg,#cb5521,#9c3d14);}
+  .a3{background:linear-gradient(150deg,#3f7d6e,#22463d);}
+  .a4{background:linear-gradient(150deg,#b88a1d,#7a5a0e);}
+  .member .nm{font-size:12px;font-weight:600;color:var(--olive);}
+  .crown{position:absolute;top:-9px;right:-7px;width:22px;height:22px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.18);}
+  .role{font-size:10px;font-weight:600;color:#7c8366;letter-spacing:0.04em;text-transform:uppercase;}
+
+  /* primary CTA */
+  .cta{
+    width:100%;border:none;cursor:pointer;
+    background:var(--olive);color:var(--yellow);
+    border-radius:22px;padding:20px 24px;
+    display:flex;align-items:center;justify-content:space-between;
+    box-shadow:var(--shadow-cta);margin:2px 0 24px;
+  }
+  .cta .label{text-align:left;}
+  .cta .label .big{font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:0.01em;}
+  .cta .label .sub{display:block;font-family:var(--font-body);font-weight:400;font-size:12.5px;color:#e7e9c8;margin-top:2px;opacity:.85;}
+  .cta .go{width:46px;height:46px;border-radius:50%;background:var(--yellow);color:var(--olive);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+
+  /* section */
+  .sec-head{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 12px;}
+  .sec-head h2{font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--olive);}
+  .sec-head a{font-size:13px;font-weight:600;color:#7c8366;text-decoration:none;}
+  .section{margin-bottom:26px;}
+
+  /* quest history cards */
+  .qcard{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #efe9da;border-radius:var(--radius-card);padding:13px;margin-bottom:11px;box-shadow:var(--shadow-card);}
+  .qthumb{width:52px;height:52px;border-radius:11px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:24px;}
+  .t-green{background:#e7f0df;}
+  .t-orange{background:#fbe6da;}
+  .t-sage{background:var(--sage);}
+  .qinfo{flex:1 1 auto;min-width:0;}
+  .qinfo .qn{font-weight:600;font-size:15px;color:var(--olive);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .qinfo .qd{font-size:12.5px;color:#8a8a82;margin-top:3px;}
+  .stars{display:flex;gap:2px;margin-top:6px;}
+  .stars svg{width:13px;height:13px;}
+  .star-f{color:var(--orange);}
+  .star-e{color:#d8d3c4;}
+  .qchev{color:#c3bdac;flex:0 0 auto;}
+
+  /* bucket list pills */
+  .bucket{display:flex;flex-wrap:wrap;gap:9px;}
+  .pill{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1.5px solid #d9d3c2;color:var(--olive);border-radius:var(--radius-pill);padding:10px 15px;font-size:13.5px;font-weight:500;}
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--orange);}
+  .pill.add{border-style:dashed;border-color:#c2bba8;color:#7c8366;font-weight:600;}
+
+  /* ===== tab bar ===== */
+  .tabbar{position:relative;flex:0 0 auto;height:92px;background:rgba(252,250,245,0.92);backdrop-filter:blur(12px);border-top:1px solid #ece6d7;display:flex;align-items:flex-start;justify-content:space-around;padding:11px 14px 0;}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:#a7a294;width:58px;padding-top:3px;}
+  .tab.active{color:var(--olive);}
+  .tab svg{width:25px;height:25px;}
+  .tab.center{width:64px;}
+  .fab{width:60px;height:60px;border-radius:50%;background:var(--olive);color:var(--yellow);display:flex;align-items:center;justify-content:center;margin-top:-26px;box-shadow:var(--shadow-cta),0 0 0 5px var(--canvas);}
+  .tab.center span{margin-top:1px;color:var(--olive);}
+  .home-indicator{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#1a3300;opacity:.28;}
+
+  /* ===== empty state ===== */
+  .empty{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 8px 0;}
+  .empty .art{margin:30px 0 26px;position:relative;width:200px;height:160px;display:flex;align-items:center;justify-content:center;}
+  .blob{position:absolute;width:170px;height:170px;border-radius:46% 54% 58% 42%/52% 44% 56% 48%;background:radial-gradient(circle at 35% 30%,#e9f0e0,#dfe8d2);}
+  .empty .art .ring{position:absolute;width:62px;height:62px;border-radius:50%;border:2px dashed #b9c7a6;}
+  .ring.r1{top:8px;left:14px;}
+  .ring.r2{bottom:6px;right:10px;background:#fff;border-style:solid;border-color:#efe9da;display:flex;align-items:center;justify-content:center;font-size:26px;}
+  .av-emoji{position:relative;z-index:2;width:84px;height:84px;border-radius:50%;background:linear-gradient(150deg,#2f5d2a,#1a3300);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-cta);}
+  .empty h2{font-family:var(--font-display);font-weight:800;font-size:27px;line-height:1.12;color:var(--olive);max-width:280px;margin-bottom:12px;}
+  .empty h2 .hl{background:var(--yellow);padding:0 7px;border-radius:5px;}
+  .empty p{font-size:14.5px;line-height:1.5;color:#7a7d6e;max-width:268px;margin-bottom:30px;}
+  .empty .actions{width:100%;display:flex;flex-direction:column;gap:13px;padding:0 6px;}
+  .btn-primary{width:100%;border:none;cursor:pointer;background:var(--olive);color:var(--yellow);font-family:var(--font-display);font-weight:700;font-size:17px;padding:18px;border-radius:var(--radius-pill);box-shadow:var(--shadow-cta);display:flex;align-items:center;justify-content:center;gap:9px;}
+  .btn-secondary{width:100%;cursor:pointer;background:transparent;color:var(--olive);border:2px solid var(--olive);font-family:var(--font-display);font-weight:700;font-size:17px;padding:16px;border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;gap:9px;}
+  .empty .hint{margin-top:22px;font-size:12.5px;color:#9b9c8e;}
+  .empty .hint b{color:var(--orange);font-weight:600;}
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>Aventure — Crew Home</h1>
+    <p>390 × 844 · warm cream canvas, forest-green brand · tokens from design/tokens/DESIGN.md</p>
+  </div>
+
+  <div class="stage">
+
+    <!-- ============================================================ -->
+    <!-- A) EMPTY STATE                                               -->
+    <!-- ============================================================ -->
+    <div class="frame-wrap">
+      <div class="frame-label">A · <b>Empty state</b> — no crew yet</div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen">
+
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="icons">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4" width="3" height="8" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+              <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><path d="M8.5 2.5c2.3 0 4.4.9 6 2.4l1.3-1.4A11 11 0 0 0 8.5.4 11 11 0 0 0 1.2 3.5L2.5 5a8.6 8.6 0 0 1 6-2.5Zm0 4c1.2 0 2.3.5 3.1 1.3l1.3-1.4a7 7 0 0 0-8.8 0L5.4 7.8A4.4 4.4 0 0 1 8.5 6.5Zm0 4 2-2.1a2.8 2.8 0 0 0-4 0l2 2.1Z"/></svg>
+              <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="18" height="8" rx="1.5" fill="currentColor"/><rect x="23" y="4" width="2" height="4" rx="1" fill="currentColor" opacity="0.5"/></svg>
+            </span>
+          </div>
+
+          <div class="body">
+            <div class="top">
+              <div>
+                <div class="eyebrow">Welcome to Aventure</div>
+                <div class="crew-name">Hey, Maya</div>
+              </div>
+              <div class="icon-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+              </div>
+            </div>
+
+            <div class="empty">
+              <div class="art">
+                <div class="blob"></div>
+                <div class="ring r1"></div>
+                <div class="ring r2">⛰️</div>
+                <div class="av-emoji"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffe95c" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+              </div>
+              <h2>Your crew is where it all <span class="hl">begins</span></h2>
+              <p>Round up your people, or drop into one that fits. Then Aventure plans the night — you just show up.</p>
+
+              <div class="actions">
+                <button class="btn-primary">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                  Create a crew
+                </button>
+                <button class="btn-secondary">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5M15 12H3"/></svg>
+                  Join a crew
+                </button>
+              </div>
+
+              <div class="hint">Got an invite code? <b>Tap Join a crew</b></div>
+            </div>
+          </div>
+
+          <!-- tab bar -->
+          <div class="tabbar">
+            <div class="tab active">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/></svg>
+              <span>Home</span>
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg>
+              <span>Explore</span>
+            </div>
+            <div class="tab center">
+              <div class="fab"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 9.2 9.2 2 12l7.2 2.8L12 22l2.8-7.2L22 12l-7.2-2.8Z"/></svg></div>
+              <span>Quest</span>
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="3.2"/><path d="M21 20v-2a4 4 0 0 0-3-3.85"/></svg>
+              <span>Crew</span>
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1"/></svg>
+              <span>Profile</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- B) ACTIVE STATE                                              -->
+    <!-- ============================================================ -->
+    <div class="frame-wrap">
+      <div class="frame-label">B · <b>Active state</b> — crew of 4</div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen">
+
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="icons">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4" width="3" height="8" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+              <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><path d="M8.5 2.5c2.3 0 4.4.9 6 2.4l1.3-1.4A11 11 0 0 0 8.5.4 11 11 0 0 0 1.2 3.5L2.5 5a8.6 8.6 0 0 1 6-2.5Zm0 4c1.2 0 2.3.5 3.1 1.3l1.3-1.4a7 7 0 0 0-8.8 0L5.4 7.8A4.4 4.4 0 0 1 8.5 6.5Zm0 4 2-2.1a2.8 2.8 0 0 0-4 0l2 2.1Z"/></svg>
+              <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="18" height="8" rx="1.5" fill="currentColor"/><rect x="23" y="4" width="2" height="4" rx="1" fill="currentColor" opacity="0.5"/></svg>
+            </span>
+          </div>
+
+          <div class="body">
+            <div class="top">
+              <div>
+                <div class="eyebrow">Your crew · 4 members</div>
+                <div class="crew-name">The Night Owls</div>
+              </div>
+              <div class="icon-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+              </div>
+            </div>
+
+            <div class="scroll">
+              <!-- avatar row -->
+              <div class="crew-row">
+                <div class="member">
+                  <div class="avatar a1">M<span class="crown"><svg width="11" height="11" viewBox="0 0 24 24" fill="#1a3300"><path d="M3 7l4 4 5-7 5 7 4-4v11H3z"/></svg></span></div>
+                  <span class="nm">Maya</span><span class="role">Leader</span>
+                </div>
+                <div class="member">
+                  <div class="avatar a2">J</div>
+                  <span class="nm">Jordan</span><span class="role">Member</span>
+                </div>
+                <div class="member">
+                  <div class="avatar a3">P</div>
+                  <span class="nm">Priya</span><span class="role">Member</span>
+                </div>
+                <div class="member">
+                  <div class="avatar a4">L</div>
+                  <span class="nm">Leo</span><span class="role">Member</span>
+                </div>
+              </div>
+
+              <!-- primary CTA -->
+              <button class="cta">
+                <span class="label">
+                  <span class="big">Start a quest</span>
+                  <span class="sub">Plan tonight in 90 seconds</span>
+                </span>
+                <span class="go"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </button>
+
+              <!-- quest history -->
+              <div class="section">
+                <div class="sec-head"><h2>Quest history</h2><a href="#">See all</a></div>
+
+                <div class="qcard">
+                  <div class="qthumb t-orange">🍜</div>
+                  <div class="qinfo">
+                    <div class="qn">Ramen &amp; Rooftop Bars</div>
+                    <div class="qd">Sat, May 24</div>
+                    <div class="stars">
+                      <svg class="star-f" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .7-5.2 4.7 1.5 6.9L12 17.8 5.2 20.8l1.5-6.9L1.5 9.2l7-.7L12 2Z"/></svg>
+                      <svg class="star-f" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .7-5.2 4.7 1.5 6.9L12 17.8 5.2 20.8l1.5-6.9L1.5 9.2l7-.7L12 2Z"/></svg>
+                      <svg class="star-f" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .7-5.2 4.7 1.5 6.9L12 17.8 5.2 20.8l1.5-6.9L1.5 9.2l7-.7L12 2Z"/></svg>
+                      <svg class="star-f" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .7-5.2 4.7 1.5 6.9L12 17.8 5.2 20.8l1.5-6.9L1.5 9.2l7-.7L12 2Z"/></svg>
+                      <svg class="star-f" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .7-5.2 4.7 1.5 6.9L12 17.8 5.2 20.8l1.5-6.9L1.5 9.2l7-.7L12 2Z"/></svg>
+                    </div>
+                  </div>
+                  <div class="qchev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></div>
+                </div>
+
+                <div class="qcard">
+                  <div class="qthumb t-green">🎬</div>
+                  <div class="qinfo">
+                    <div class="qn">Indie Film &amp; Late Tacos</div>
+                    <div class="qd">Fri, May 9</div>
+                    <div class="stars">
+                      <svg class="star-f" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .7-5.2 4.7 1.5 6.9L12 17.8 5.2 20.8l1.5-6.9L1.5 9.2l7-.7L12 2Z"/></svg>
+                      <svg class="star-f" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .7-5.2 4.7 1.5 6.9L12 17.8 5.2 20.8l1.5-6.9L1.5 9.2l7-.7L12 2Z"/></svg>
+                      <svg class="star-f" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .7-5.2 4.7 1.5 6.9L12 17.8 5.2 20.8l1.5-6.9L1.5 9.2l7-.7L12 2Z"/></svg>
+                      <svg class="star-f" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .7-5.2 4.7 1.5 6.9L12 17.8 5.2 20.8l1.5-6.9L1.5 9.2l7-.7L12 2Z"/></svg>
+                      <svg class="star-e" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .7-5.2 4.7 1.5 6.9L12 17.8 5.2 20.8l1.5-6.9L1.5 9.2l7-.7L12 2Z"/></svg>
+                    </div>
+                  </div>
+                  <div class="qchev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></div>
+                </div>
+
+                <div class="qcard">
+                  <div class="qthumb t-sage">🎳</div>
+                  <div class="qinfo">
+                    <div class="qn">Bowling &amp; Burgers</div>
+                    <div class="qd">Sat, Apr 26</div>
+                    <div class="stars">
+                      <svg class="star-f" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .7-5.2 4.7 1.5 6.9L12 17.8 5.2 20.8l1.5-6.9L1.5 9.2l7-.7L12 2Z"/></svg>
+                      <svg class="star-f" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .7-5.2 4.7 1.5 6.9L12 17.8 5.2 20.8l1.5-6.9L1.5 9.2l7-.7L12 2Z"/></svg>
+                      <svg class="star-f" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .7-5.2 4.7 1.5 6.9L12 17.8 5.2 20.8l1.5-6.9L1.5 9.2l7-.7L12 2Z"/></svg>
+                      <svg class="star-e" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .7-5.2 4.7 1.5 6.9L12 17.8 5.2 20.8l1.5-6.9L1.5 9.2l7-.7L12 2Z"/></svg>
+                      <svg class="star-e" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .7-5.2 4.7 1.5 6.9L12 17.8 5.2 20.8l1.5-6.9L1.5 9.2l7-.7L12 2Z"/></svg>
+                    </div>
+                  </div>
+                  <div class="qchev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></div>
+                </div>
+              </div>
+
+              <!-- bucket list -->
+              <div class="section">
+                <div class="sec-head"><h2>Crew bucket list</h2><a href="#">Edit</a></div>
+                <div class="bucket">
+                  <span class="pill"><span class="dot"></span>Karaoke night</span>
+                  <span class="pill"><span class="dot"></span>Day trip to the coast</span>
+                  <span class="pill"><span class="dot"></span>Cooking class</span>
+                  <span class="pill add">+ Add idea</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- tab bar -->
+          <div class="tabbar">
+            <div class="tab active">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/></svg>
+              <span>Home</span>
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg>
+              <span>Explore</span>
+            </div>
+            <div class="tab center">
+              <div class="fab"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 9.2 9.2 2 12l7.2 2.8L12 22l2.8-7.2L22 12l-7.2-2.8Z"/></svg></div>
+              <span>Quest</span>
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="3.2"/><path d="M21 20v-2a4 4 0 0 0-3-3.85"/></svg>
+              <span>Crew</span>
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1"/></svg>
+              <span>Profile</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

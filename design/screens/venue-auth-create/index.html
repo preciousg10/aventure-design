@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventure for Venues: Set up your venue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+  /* ===== Golden Hour tokens (venue app), --secondary = #2D6A4F ===== */
+  :root{
+    --bg:#FBF6EE; --card:#FFFFFF; --primary:#E2693E; --secondary:#2D6A4F;
+    --success:#3D8060; --ink:#2A2521; --muted:#7A6E68; --divider:#ECE4D8; --danger:#A2462A;
+    --font-display:"Fraunces",Georgia,serif; --font-body:"Satoshi","Inter",Arial,sans-serif;
+    --radius-button:14px; --radius-card:16px; --radius-input:12px; --radius-pill:100px;
+    --shadow-card:0 1px 2px rgba(42,37,33,0.05), 0 8px 24px rgba(42,37,33,0.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  /* Prototype is view-only: non-interactive text shows no I-beam and can't be selected. */
+  html{-webkit-tap-highlight-color:transparent;}
+  body{cursor:default;}
+  *{-webkit-user-select:none;user-select:none;}
+  input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;cursor:auto;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.4;min-height:100vh;}
+
+  .shell{max-width:1040px;margin:0 auto;padding:40px 28px 64px;display:grid;grid-template-columns:320px 1fr;gap:48px;align-items:start;}
+
+  /* ---- Left welcome panel ---- */
+  .context{position:sticky;top:40px;}
+  .wordmark{display:flex;align-items:baseline;gap:8px;margin-bottom:28px;}
+  .wordmark .name{font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--ink);}
+  .wordmark .tag{font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--secondary);background:rgba(45,106,79,0.10);padding:3px 8px;border-radius:var(--radius-pill);}
+  .badge-founding{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:#fff;background:var(--secondary);padding:5px 12px;border-radius:var(--radius-pill);margin-bottom:16px;}
+  .badge-founding .dot{width:6px;height:6px;border-radius:50%;background:#fff;}
+  .context h1{font-family:var(--font-display);font-weight:600;font-size:28px;line-height:1.2;color:var(--ink);margin-bottom:12px;}
+  .context p.lede{color:var(--muted);font-size:15px;max-width:34ch;margin-bottom:20px;}
+  .reassure{font-size:14px;color:var(--ink);display:flex;gap:9px;align-items:flex-start;}
+  .reassure svg{color:var(--success);flex:0 0 auto;margin-top:2px;}
+
+  /* ---- Form card ---- */
+  .form-card{background:var(--card);border:0.5px solid var(--divider);border-radius:var(--radius-card);box-shadow:var(--shadow-card);padding:32px;max-width:480px;}
+  .form-card h2{font-family:var(--font-display);font-weight:600;font-size:22px;margin-bottom:6px;}
+  .form-card .sub{color:var(--muted);font-size:14px;margin-bottom:24px;}
+
+  .field{margin-bottom:20px;}
+  .field > label{display:block;font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+  .field .help{display:block;font-size:13px;color:var(--muted);margin-top:6px;}
+  input[type=text],input[type=email],input[type=password]{
+    width:100%;height:48px;padding:0 14px;font-family:var(--font-body);font-size:16px;color:var(--ink);
+    background:var(--card);border:1px solid var(--divider);border-radius:var(--radius-input);transition:border-color .15s,box-shadow .15s;
+  }
+  input:focus{outline:none;border-color:var(--secondary);box-shadow:0 0 0 3px rgba(45,106,79,0.18);}
+  .field.invalid input{border-color:var(--danger);}
+  .field.invalid input:focus{box-shadow:0 0 0 3px rgba(162,70,42,0.18);}
+  .error-msg{display:none;color:var(--danger);font-size:13px;margin-top:6px;font-weight:500;}
+  .field.invalid .error-msg{display:block;}
+
+  .pw-row{position:relative;}
+  .pw-row input{padding-right:64px;}
+  .pw-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;height:44px;background:transparent;border:none;color:var(--secondary);font-family:var(--font-body);font-weight:500;font-size:13px;cursor:pointer;padding:0 10px;border-radius:10px;}
+  .pw-toggle:hover{background:rgba(45,106,79,0.08);}
+  .pw-toggle:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(45,106,79,0.35);}
+
+  .btn-primary{width:100%;height:52px;margin-top:4px;background:var(--primary);color:var(--ink);font-family:var(--font-body);font-weight:500;font-size:15px;border:none;border-radius:var(--radius-button);cursor:pointer;transition:filter .15s;}
+  .btn-primary:hover{filter:brightness(0.97);}
+  .btn-primary:disabled{opacity:.7;cursor:progress;}
+  .btn-primary:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(42,37,33,0.45);}
+
+  .alt{margin-top:18px;font-size:14px;color:var(--muted);text-align:left;}
+  .alt a{color:var(--secondary);font-weight:500;text-decoration:none;}
+  .alt a:hover{text-decoration:underline;}
+
+  /* no-token state */
+  .no-token{background:var(--card);border:0.5px solid var(--divider);border-radius:var(--radius-card);box-shadow:var(--shadow-card);padding:32px;max-width:480px;}
+  .no-token h2{font-family:var(--font-display);font-weight:600;font-size:22px;margin-bottom:10px;}
+  .no-token p{color:var(--muted);font-size:15px;}
+
+  /* non-interactive chrome: no editable feel */
+  h1,h2,.wordmark,.tag,.badge-founding,.lede,.reassure,.sub,.field>label,.alt,.no-token p{cursor:default;user-select:none;}
+
+  .hidden{display:none;}
+
+  @media (max-width:760px){
+    .shell{grid-template-columns:1fr;gap:24px;padding:28px 20px 48px;}
+    .context{position:static;}
+    .context p.lede{max-width:none;}
+    .form-card,.no-token{padding:24px 20px;max-width:none;}
+  }
+</style>
+</head>
+<body>
+  <main class="shell">
+    <aside class="context">
+      <div class="wordmark">
+        <span class="name">Aventure</span>
+        <span class="tag">for venues</span>
+      </div>
+      <span class="badge-founding"><span class="dot"></span>Founding venue</span>
+      <h1 id="welcome">Let's get your venue set up</h1>
+      <p class="lede">Thanks for the chat. Your account takes about a minute, and your venue is already filled in.</p>
+      <p class="reassure">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        Zero fees until we're actually sending you paying groups.
+      </p>
+    </aside>
+
+    <!-- Founding flow (has invite token) -->
+    <section class="form-card" id="create-card">
+      <h2>Create your account</h2>
+      <p class="sub">You're one of Aventure's founding venues.</p>
+      <form id="createForm" novalidate>
+        <div class="field" id="f-venue">
+          <label for="venue-name">Venue name</label>
+          <input type="text" id="venue-name" name="venue-name" autocomplete="organization" required>
+          <span class="help">Pre-filled from your invite. Fix it if it's not quite right.</span>
+          <span class="error-msg">Enter your venue name.</span>
+        </div>
+        <div class="field" id="f-email">
+          <label for="email">Work email</label>
+          <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required>
+          <span class="error-msg">Enter a valid email address.</span>
+        </div>
+        <div class="field" id="f-password">
+          <label for="password">Create a password</label>
+          <div class="pw-row">
+            <input type="password" id="password" name="password" autocomplete="new-password" required>
+            <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Show password">Show</button>
+          </div>
+          <span class="help">At least 8 characters.</span>
+          <span class="error-msg">Use at least 8 characters.</span>
+        </div>
+        <button type="submit" class="btn-primary" id="submit-btn">Create account</button>
+      </form>
+      <p class="alt">Already have an account? <a href="../venue-auth-login/index.html">Log in</a></p>
+    </section>
+
+    <!-- No-token state -->
+    <section class="no-token hidden" id="no-token-card">
+      <h2>You'll need an invite</h2>
+      <p>Aventure is invite-only for founding venues right now. If you spoke with our team, use the link in the email Ryan sent you. No link yet? Just reply to that email and we'll sort it out.</p>
+    </section>
+  </main>
+
+  <script>
+    // Stub only — no backend. Reads the invite token from the URL.
+    const params = new URLSearchParams(location.search);
+    const hasInvite = params.has('invite');
+    const createCard = document.getElementById('create-card');
+    const noTokenCard = document.getElementById('no-token-card');
+
+    if (!hasInvite){
+      // Founding phase is invite-only: hide the form, show the gentle state.
+      createCard.classList.add('hidden');
+      noTokenCard.classList.remove('hidden');
+    } else {
+      // Stub: a real token resolves to the venue name server-side. Demo reads ?venue=.
+      const venueName = params.get('venue') || 'Greenpoint Escape Co.';
+      document.getElementById('venue-name').value = venueName;
+      document.getElementById('welcome').textContent = 'Let’s get ' + venueName + ' set up';
+    }
+
+    const form = document.getElementById('createForm');
+    const emailInput = document.getElementById('email');
+    const pwInput = document.getElementById('password');
+    const pwToggle = document.getElementById('pw-toggle');
+    const submitBtn = document.getElementById('submit-btn');
+
+    function setError(field, on){ field.classList.toggle('invalid', on); }
+    const emailOk = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+
+    function validateField(input){
+      const field = input.closest('.field');
+      let ok = true;
+      if (input === emailInput) ok = emailOk(input.value);
+      else if (input === pwInput) ok = input.value.length >= 8;
+      else if (input.required) ok = input.value.trim() !== '';
+      setError(field, !ok);
+      return ok;
+    }
+
+    form.querySelectorAll('input').forEach(el => {
+      el.addEventListener('blur', () => { if (el.required) validateField(el); });
+    });
+
+    pwToggle.addEventListener('click', () => {
+      const showing = pwInput.type === 'text';
+      pwInput.type = showing ? 'password' : 'text';
+      pwToggle.textContent = showing ? 'Show' : 'Hide';
+      pwToggle.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const results = [...form.querySelectorAll('[required]')].map(validateField);
+      if (results.includes(false)){
+        form.querySelector('.field.invalid input')?.focus();
+        return;
+      }
+      // Stub: real account creation is a backend concern (Supabase Auth).
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating your account…';
+      // Carry the venue name into onboarding (V1) so it stays pre-filled.
+      setTimeout(() => {
+        const name = document.getElementById('venue-name').value.trim();
+        window.location.href = '../venue-onboarding-basics/index.html?venue=' + encodeURIComponent(name);
+      }, 700);
+    });
+  </script>
+</body>
+</html>

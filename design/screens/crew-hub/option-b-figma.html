@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventure · Crew Hub — Option B (Figma import)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF6EE; --card:#FFFFFF; --primary:#E2693E; --secondary:#138A6B;
+    --success:#3D8060; --ink:#2A2521; --muted:#7A6E68; --divider:#ECE4D8;
+    --font-display:"Fraunces",Georgia,serif; --font-body:"Satoshi","Inter",Arial,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;background:var(--bg);}
+
+  /* flat 390x844 artboard — no device chrome, ideal for HTML->Figma import */
+  .frame{width:390px;height:844px;background:var(--bg);overflow:hidden;
+         position:relative;display:flex;flex-direction:column;font-family:var(--font-body);color:var(--ink);}
+
+  .header{background:var(--secondary);color:#fff;flex:0 0 auto;}
+  .statusbar{height:59px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 8px;}
+  .statusbar .time{font-weight:700;font-size:15px;letter-spacing:.02em;}
+  .sys{display:flex;align-items:center;gap:6px;}
+  .topnav{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px 6px;}
+  .wordmark{font-family:var(--font-display);font-weight:600;font-size:23px;}
+  .bell{position:relative;}
+  .bell .dot{position:absolute;top:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:var(--primary);border:1.5px solid var(--secondary);}
+
+  .body{flex:1 1 auto;overflow-y:auto;padding:18px 20px 100px;position:relative;}
+  .body::-webkit-scrollbar{display:none;}
+  .greeting h1{font-family:var(--font-display);font-weight:600;font-size:22px;color:var(--ink);line-height:1.2;}
+  .greeting p{font-size:14px;color:var(--muted);margin-top:4px;}
+  .greeting{margin-bottom:16px;}
+
+  /* HERO card */
+  .hero{background:var(--card);border:0.5px solid var(--divider);border-radius:20px;padding:20px;
+        box-shadow:0 2px 4px rgba(42,37,33,.05),0 14px 30px rgba(42,37,33,.08);margin-bottom:22px;position:relative;overflow:hidden;}
+  .hero::before{content:"";position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;
+                background:radial-gradient(circle,rgba(226,105,62,.12),transparent 70%);}
+  .hero-label{display:flex;align-items:center;gap:8px;}
+  .badge-live{display:inline-flex;align-items:center;gap:6px;background:var(--success);color:#fff;
+              border-radius:100px;padding:5px 11px;font-size:12px;font-weight:700;letter-spacing:.02em;}
+  .badge-live .led{width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .hero-crew{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.05em;text-transform:uppercase;margin-left:auto;}
+  .hero h2{font-family:var(--font-display);font-weight:700;font-size:27px;line-height:1.12;color:var(--ink);margin:14px 0 4px;}
+  .hero .where{font-size:14px;color:var(--muted);}
+  .avs{display:flex;align-items:center;margin:18px 0 0;}
+  .av{width:36px;height:36px;border-radius:50%;border:2px solid var(--card);margin-left:-10px;
+      display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;}
+  .av:first-child{margin-left:0;}
+  .av--active{box-shadow:0 0 0 2px var(--primary);}
+  .av-more{width:36px;height:36px;border-radius:50%;margin-left:-10px;background:var(--bg);border:2px solid var(--card);
+           display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--muted);box-shadow:0 0 0 2px var(--divider);}
+  .progress{height:8px;border-radius:100px;background:var(--divider);margin:18px 0 8px;overflow:hidden;}
+  .progress i{display:block;height:100%;width:48%;background:var(--success);border-radius:100px;}
+  .prog-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);}
+  .hero-cta{margin-top:18px;width:100%;height:50px;background:var(--secondary);color:#fff;border:none;
+            border-radius:14px;font-family:var(--font-body);font-weight:500;font-size:15px;
+            display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;}
+
+  .sec-label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);
+             font-weight:500;margin:0 4px 12px;}
+
+  /* compact secondary crew rows */
+  .mini{background:var(--card);border:0.5px solid var(--divider);border-radius:14px;padding:14px 16px;
+        display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+  .mini-avs{display:flex;align-items:center;flex:0 0 auto;}
+  .mini-av{width:30px;height:30px;border-radius:50%;border:2px solid var(--card);margin-left:-8px;
+           display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
+  .mini-av:first-child{margin-left:0;}
+  .mini-av.r-active{box-shadow:0 0 0 2px var(--primary);}
+  .mini-av.r-idle{box-shadow:0 0 0 2px var(--divider);}
+  .mini-mid{flex:1 1 auto;min-width:0;}
+  .mini-name{font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--ink);}
+  .mini-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .pill{display:inline-flex;align-items:center;gap:5px;border-radius:100px;padding:4px 10px;font-size:12px;font-weight:500;white-space:nowrap;}
+  .pill--waiting{background:var(--primary);color:var(--ink);}
+  .pill--none{background:var(--divider);color:var(--muted);}
+  .pill .led{width:6px;height:6px;border-radius:50%;background:currentColor;}
+
+  /* FAB */
+  .fab{position:absolute;right:20px;bottom:18px;width:56px;height:56px;border-radius:50%;background:var(--primary);
+       border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;
+       box-shadow:0 6px 18px rgba(226,105,62,.45);z-index:5;}
+  .fab-label{position:absolute;right:84px;bottom:34px;background:var(--ink);color:#fff;font-size:12px;font-weight:500;
+             padding:6px 11px;border-radius:100px;white-space:nowrap;z-index:5;opacity:.92;}
+  .fab-label::after{content:"";position:absolute;right:-5px;bottom:9px;border:5px solid transparent;border-left-color:var(--ink);}
+
+  .tabbar-wrap{flex:0 0 auto;position:relative;}
+  .tabbar{height:60px;background:var(--card);border-top:0.5px solid var(--divider);display:flex;align-items:center;justify-content:space-around;padding-top:6px;}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;font-weight:500;}
+  .tab.active{color:var(--secondary);}
+  .home-ind{height:34px;display:flex;align-items:center;justify-content:center;background:var(--card);}
+  .home-ind i{width:134px;height:5px;border-radius:100px;background:rgba(42,37,33,.2);}
+</style>
+</head>
+<body>
+  <div class="frame">
+
+    <div class="header">
+      <div class="statusbar">
+        <span class="time">9:41</span>
+        <span class="sys">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="#fff"><path d="M8.5 2C5.6 2 2.9 3.1 1 5l1.5 1.5C4 5 6.2 4 8.5 4S13 5 14.5 6.5L16 5c-1.9-1.9-4.6-3-7.5-3z"/><path d="M8.5 6c-1.6 0-3.1.6-4.2 1.7L8.5 12l4.2-4.3C11.6 6.6 10.1 6 8.5 6z"/></svg>
+          <svg width="26" height="12" viewBox="0 0 26 12"><rect x="0.5" y="0.5" width="22" height="11" rx="3" fill="none" stroke="#fff" stroke-opacity=".5"/><rect x="2" y="2" width="18" height="8" rx="1.5" fill="#fff"/><rect x="23.5" y="3.5" width="2" height="5" rx="1" fill="#fff" fill-opacity=".6"/></svg>
+        </span>
+      </div>
+      <div class="topnav">
+        <span class="wordmark">aventure</span>
+        <span class="bell">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="dot"></span>
+        </span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="greeting">
+        <h1>Good evening, Zaydaan.</h1>
+        <p>Here's where your crews are at.</p>
+      </div>
+
+      <!-- HERO -->
+      <div class="hero">
+        <div class="hero-label">
+          <span class="badge-live"><span class="led"></span>QUEST LIVE</span>
+          <span class="hero-crew">The Usual Suspects</span>
+        </div>
+        <h2>Speakeasy &amp; Late-Night Eats</h2>
+        <div class="where">Distillery District · tonight</div>
+        <div class="avs">
+          <div class="av av--active" style="background:#C8643F">ZM</div>
+          <div class="av av--active" style="background:#138A6B">KA</div>
+          <div class="av av--active" style="background:#B98A3E">JP</div>
+          <div class="av av--active" style="background:#3D8060">RS</div>
+          <div class="av-more">+2</div>
+        </div>
+        <div class="progress"><i></i></div>
+        <div class="prog-row"><span>Stop 2 of 4</span><span>Next: Cocktail crawl</span></div>
+        <button class="hero-cta">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Open quest
+        </button>
+      </div>
+
+      <div class="sec-label">Your other crews</div>
+
+      <div class="mini">
+        <div class="mini-avs">
+          <div class="mini-av r-active" style="background:#3D8060">✓</div>
+          <div class="mini-av r-idle" style="background:#cdbfb0">MA</div>
+          <div class="mini-av r-idle" style="background:#cdbfb0">TO</div>
+        </div>
+        <div class="mini-mid">
+          <div class="mini-name">Frosh Week Forever</div>
+          <div class="mini-sub">3 of 5 paid · 19h left</div>
+        </div>
+        <span class="pill pill--waiting"><span class="led"></span>Waiting</span>
+      </div>
+
+      <div class="mini">
+        <div class="mini-avs">
+          <div class="mini-av r-idle" style="background:#B98A3E">EC</div>
+          <div class="mini-av r-idle" style="background:#C8643F">NV</div>
+          <div class="mini-av r-idle" style="background:#138A6B">HK</div>
+        </div>
+        <div class="mini-mid">
+          <div class="mini-name">Sunday Run Club</div>
+          <div class="mini-sub">Last quest 3 days ago</div>
+        </div>
+        <span class="pill pill--none"><span class="led"></span>No quest</span>
+      </div>
+    </div>
+
+    <div class="tabbar-wrap">
+      <span class="fab-label">Start a quest</span>
+      <button class="fab" aria-label="Start a quest">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2A2521" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6 4.4 2.3 7.2L12 16.6 5.7 21l2.3-7.2-6-4.4h7.6z"/></svg>
+      </button>
+      <div class="tabbar">
+        <div class="tab active">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+          Home
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7A6E68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          Memories
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7A6E68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="16 8 14 14 8 16 10 10"/></svg>
+          Explore
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7A6E68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+          Profile
+        </div>
+      </div>
+      <div class="home-ind"><i></i></div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventure for Venues: Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+  /* ===== Golden Hour tokens (venue app) — mirrors design/tokens/tokens.css,
+          with --secondary overridden to the venue-app canonical #2D6A4F ===== */
+  :root{
+    --bg:#FBF6EE;
+    --card:#FFFFFF;
+    --primary:#E2693E;
+    --secondary:#2D6A4F;   /* venue-app canonical (consumer app uses #138A6B) */
+    --success:#3D8060;
+    --ink:#2A2521;
+    --muted:#7A6E68;
+    --divider:#ECE4D8;
+    --danger:#A2462A;
+    --font-display:"Fraunces",Georgia,serif;
+    --font-body:"Satoshi","Inter",Arial,sans-serif;
+    --radius-button:14px;
+    --radius-card:16px;
+    --radius-input:12px;
+    --radius-pill:100px;
+    --shadow-card:0 1px 2px rgba(42,37,33,0.05), 0 8px 24px rgba(42,37,33,0.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  /* Prototype is view-only: non-interactive text shows no I-beam and can't be selected. */
+  html{-webkit-tap-highlight-color:transparent;}
+  body{cursor:default;}
+  *{-webkit-user-select:none;user-select:none;}
+  input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;cursor:auto;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:16px;
+    line-height:1.4;
+    min-height:100vh;
+  }
+  .num{font-variant-numeric:tabular-nums;}
+
+  /* ===== App shell: nav | content ===== */
+  .app{display:flex;align-items:stretch;min-height:100vh;}
+
+  /* ---- Left navigation (warm linen, never dark) ---- */
+  .sidebar{
+    width:236px;flex:0 0 236px;
+    background:var(--bg);
+    border-right:0.5px solid var(--divider);
+    padding:26px 16px 22px;
+    display:flex;flex-direction:column;gap:26px;
+    position:sticky;top:0;height:100vh;
+  }
+  .wordmark{display:flex;align-items:baseline;gap:8px;padding:0 8px;}
+  .wordmark .name{font-family:var(--font-display);font-weight:700;font-size:21px;color:var(--ink);}
+  .wordmark .tag{
+    font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;
+    color:var(--secondary);background:rgba(45,106,79,0.10);
+    padding:3px 7px;border-radius:var(--radius-pill);
+  }
+  .nav{display:flex;flex-direction:column;gap:22px;flex:1 1 auto;}
+  .nav-group{display:flex;flex-direction:column;gap:2px;}
+  .nav-group .gl{
+    font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
+    color:var(--muted);padding:0 8px 6px;
+  }
+  .nav-item{
+    display:flex;align-items:center;gap:11px;
+    padding:9px 10px;min-height:44px;border-radius:10px;
+    color:var(--muted);font-size:14px;font-weight:500;text-decoration:none;
+    transition:background .14s,color .14s;
+  }
+  .nav-item svg{width:18px;height:18px;flex:0 0 auto;stroke-width:1.6;}
+  .nav-item:hover{background:var(--card);color:var(--ink);}
+  .nav-item.active{background:rgba(45,106,79,0.10);color:var(--secondary);font-weight:700;}
+  .nav-item .count{
+    margin-left:auto;font-size:11px;font-weight:700;color:#fff;background:var(--primary);
+    min-width:18px;height:18px;border-radius:var(--radius-pill);
+    display:flex;align-items:center;justify-content:center;padding:0 5px;
+  }
+  .nav-foot{display:flex;flex-direction:column;gap:10px;}
+  .venue-chip{
+    display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;
+    border:0.5px solid var(--divider);background:var(--card);
+  }
+  .venue-chip .ava{
+    width:34px;height:34px;border-radius:var(--radius-pill);flex:0 0 auto;
+    background:var(--secondary);color:#fff;font-family:var(--font-display);font-weight:600;
+    display:flex;align-items:center;justify-content:center;font-size:14px;
+  }
+  .venue-chip .vn{font-size:13px;font-weight:700;color:var(--ink);line-height:1.2;}
+  .venue-chip .vs{font-size:11px;color:var(--muted);}
+
+  /* ---- Main column ---- */
+  .main{flex:1 1 auto;min-width:0;padding:26px 34px 56px;max-width:1240px;}
+
+  .topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:24px;}
+  .topbar .greet{font-family:var(--font-display);font-weight:600;font-size:27px;color:var(--ink);line-height:1.15;}
+  .topbar .sub{color:var(--muted);font-size:14px;margin-top:4px;}
+  .topbar-actions{display:flex;align-items:center;gap:12px;}
+  .btn-request{
+    display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 16px;
+    background:var(--primary);color:var(--ink);font-family:var(--font-body);font-weight:700;font-size:14px;
+    border:none;border-radius:var(--radius-button);cursor:pointer;text-decoration:none;
+  }
+  .btn-request .pip{
+    background:var(--ink);color:var(--primary);font-size:11px;font-weight:700;
+    width:18px;height:18px;border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;
+  }
+  .btn-request:hover{filter:brightness(0.97);}
+
+  /* ---- KPI strip (Navan) ---- */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px;}
+  .kpi{
+    background:var(--card);border:0.5px solid var(--divider);border-radius:var(--radius-card);
+    box-shadow:var(--shadow-card);padding:18px 18px 16px;
+  }
+  .kpi .kl{font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);}
+  .kpi .kn{font-family:var(--font-body);font-weight:700;font-size:32px;color:var(--ink);line-height:1;margin:12px 0 8px;}
+  .kpi .kd{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:5px;}
+  .kpi .kd.up{color:var(--success);}
+  .kpi .kd.warn{color:var(--danger);}
+  .kpi .kd svg{width:13px;height:13px;stroke-width:2;}
+
+  /* ---- Content grid: calendar + today rail ---- */
+  .grid{display:grid;grid-template-columns:minmax(0,1.62fr) minmax(280px,1fr);gap:20px;align-items:start;}
+  .panel{
+    background:var(--card);border:0.5px solid var(--divider);border-radius:var(--radius-card);
+    box-shadow:var(--shadow-card);overflow:hidden;
+  }
+  .panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px 14px;}
+  .panel-head .pt{font-family:var(--font-display);font-weight:600;font-size:18px;color:var(--ink);}
+  .panel-head .ps{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .legend{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted);}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;}
+  .legend .c{background:rgba(45,106,79,0.28);}
+  .legend .n{background:rgba(226,105,62,0.32);}
+
+  /* ===== Week grid (SavvyCal) — hour row height is 48px ===== */
+  .cal-wrap{padding:0 12px 14px;}
+  .cal-head{display:grid;grid-template-columns:52px repeat(7,1fr);}
+  .cal-head .ch-corner{}
+  .cal-head .dh{
+    text-align:center;padding:6px 0 10px;border-bottom:0.5px solid var(--divider);
+  }
+  .cal-head .dh .dow{font-size:11px;font-weight:500;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);}
+  .cal-head .dh .dd{
+    font-size:14px;font-weight:600;color:var(--ink);margin-top:4px;
+    width:26px;height:26px;line-height:26px;border-radius:var(--radius-pill);display:inline-block;
+  }
+  .cal-head .dh.today .dow{color:var(--secondary);}
+  .cal-head .dh.today .dd{background:var(--secondary);color:#fff;}
+  .cal-head .dh.closed .dd{color:var(--muted);font-weight:500;}
+
+  .cal-body{display:grid;grid-template-columns:52px repeat(7,1fr);position:relative;}
+  .cal-hours{position:relative;height:calc(10 * 48px);}
+  .cal-hours .hr{
+    position:absolute;right:8px;transform:translateY(-50%);
+    font-size:10.5px;color:var(--muted);white-space:nowrap;
+  }
+  .cal-col{
+    position:relative;height:calc(10 * 48px);
+    border-left:0.5px solid var(--divider);
+    background-image:repeating-linear-gradient(to bottom,var(--divider) 0 1px,transparent 1px 48px);
+  }
+  .cal-col:last-child{border-right:0.5px solid var(--divider);}
+  .cal-col.closed{background-color:rgba(124,110,104,0.045);}
+  .cal-col.closed .closed-tag{
+    position:absolute;top:10px;left:50%;transform:translateX(-50%);
+    font-size:10.5px;color:var(--muted);letter-spacing:0.04em;
+  }
+  .cal-col.today{background-color:rgba(45,106,79,0.035);}
+
+  .ev{
+    position:absolute;left:4px;right:4px;border-radius:8px;padding:5px 7px;overflow:hidden;
+    cursor:pointer;border-left:3px solid var(--secondary);background:rgba(45,106,79,0.12);
+  }
+  .ev .et{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--ink);line-height:1.1;}
+  .ev .er{display:block;font-size:10.5px;color:var(--ink);line-height:1.15;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ev.new{border-left-color:var(--primary);background:rgba(226,105,62,0.14);}
+  .ev.new .ntag{
+    margin-left:auto;flex:0 0 auto;font-size:8px;font-weight:700;letter-spacing:0.06em;color:var(--primary);
+    border:1px solid rgba(226,105,62,0.5);border-radius:var(--radius-pill);padding:0 5px;line-height:1.5;
+  }
+  .now{position:absolute;left:0;right:0;height:0;border-top:2px solid var(--primary);z-index:3;}
+  .now::before{content:"";position:absolute;left:-4px;top:-5px;width:8px;height:8px;border-radius:50%;background:var(--primary);}
+
+  /* ===== Today's bookings list ===== */
+  .today-list{display:flex;flex-direction:column;}
+  .tl-summary{
+    display:flex;align-items:baseline;gap:8px;margin:0 20px 12px;padding:12px 14px;
+    background:var(--bg);border:0.5px solid var(--divider);border-radius:var(--radius-input);
+  }
+  .tl-summary .hero{font-family:var(--font-body);font-weight:700;font-size:22px;color:var(--ink);}
+  .tl-summary .ht{font-size:12.5px;color:var(--muted);}
+  .booking{
+    display:flex;align-items:center;gap:13px;padding:13px 20px;
+    border-top:0.5px solid var(--divider);text-decoration:none;color:inherit;
+    transition:background .12s;
+  }
+  .booking:hover{background:var(--bg);}
+  .booking.is-new{background:rgba(226,105,62,0.05);}
+  .b-time{flex:0 0 58px;}
+  .b-time .t{font-size:13.5px;font-weight:700;color:var(--ink);}
+  .b-time .m{font-size:11px;color:var(--muted);}
+  .b-main{flex:1 1 auto;min-width:0;}
+  .b-main .room{font-size:14px;font-weight:600;color:var(--ink);}
+  .b-main .meta{font-size:12.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .b-right{flex:0 0 auto;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:5px;}
+  .b-amt{font-size:13.5px;font-weight:700;color:var(--ink);}
+  .pill{font-size:10.5px;font-weight:700;letter-spacing:0.03em;padding:3px 9px;border-radius:var(--radius-pill);}
+  .pill.confirmed{background:rgba(61,128,96,0.14);color:var(--success);}
+  .pill.new{background:var(--primary);color:var(--ink);}
+  .tl-foot{padding:14px 20px;border-top:0.5px solid var(--divider);}
+  .tl-foot a{font-size:13px;font-weight:700;color:var(--secondary);text-decoration:none;}
+  .tl-foot a:hover{text-decoration:underline;}
+
+  /* non-interactive text: no I-beam */
+  .greet,.sub,.kl,.kn,.kd,.pt,.ps,.gl,.wordmark,.tag,.legend,.dow,.dd,.closed-tag,.hr,.ht,.vn,.vs{cursor:default;user-select:none;}
+
+  /* ===== Responsive ===== */
+  @media (max-width:1080px){
+    .grid{grid-template-columns:1fr;}
+    .kpis{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:760px){
+    .app{flex-direction:column;}
+    .sidebar{
+      width:100%;flex:0 0 auto;height:auto;position:static;
+      border-right:none;border-bottom:0.5px solid var(--divider);
+      flex-direction:row;align-items:center;gap:18px;overflow-x:auto;padding:14px 16px;
+    }
+    .nav{flex-direction:row;gap:14px;}
+    .nav-group{flex-direction:row;gap:2px;}
+    .nav-group .gl{display:none;}
+    .nav-item span.lbl{display:none;}
+    .nav-item{min-width:44px;justify-content:center;padding:9px;}
+    .nav-foot,.venue-chip .vt{display:none;}
+    .main{padding:20px 18px 40px;}
+    .topbar{flex-direction:column;align-items:flex-start;}
+  }
+  @media (max-width:520px){
+    .kpis{grid-template-columns:1fr 1fr;gap:12px;}
+    .cal-wrap{overflow-x:auto;}
+    .cal-head,.cal-body{min-width:560px;}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+  <div class="app">
+    <!-- ===== Left navigation ===== -->
+    <aside class="sidebar">
+      <div class="wordmark"><span class="name">Aventure</span><span class="tag">For Venues</span></div>
+
+      <nav class="nav">
+        <div class="nav-group">
+          <a class="nav-item active" href="#" aria-current="page">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+            <span class="lbl">Dashboard</span>
+          </a>
+          <a class="nav-item" href="../venue-calendar/index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg>
+            <span class="lbl">Calendar</span>
+          </a>
+          <a class="nav-item" href="../venue-booking-request/index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 5.5h18M3 12h18M3 18.5h18"/></svg>
+            <span class="lbl">Bookings</span>
+            <span class="count">1</span>
+          </a>
+        </div>
+
+        <div class="nav-group">
+          <span class="gl">Venue</span>
+          <a class="nav-item" href="../venue-offerings/index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7l2-3h14l2 3M3 7v12.5A1.5 1.5 0 004.5 21h15a1.5 1.5 0 001.5-1.5V7M3 7h18M9 11a3 3 0 006 0"/></svg>
+            <span class="lbl">Offerings</span>
+          </a>
+          <a class="nav-item" href="../venue-availability/index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+            <span class="lbl">Availability</span>
+          </a>
+          <a class="nav-item" href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20a6.5 6.5 0 0113 0"/></svg>
+            <span class="lbl">Venue profile</span>
+          </a>
+        </div>
+
+        <div class="nav-group">
+          <span class="gl">Finance</span>
+          <a class="nav-item" href="../venue-earnings/index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16.5 14.5h1.5"/></svg>
+            <span class="lbl">Earnings</span>
+          </a>
+        </div>
+      </nav>
+
+      <div class="nav-foot">
+        <a class="nav-item" href="../venue-settings/index.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18 6l-2 2M8 16l-2 2M18 18l-2-2M8 8L6 6"/></svg>
+          <span class="lbl">Settings</span>
+        </a>
+        <div class="venue-chip">
+          <span class="ava">GE</span>
+          <span class="vt"><span class="vn">Greenpoint Escape Co.</span><br><span class="vs">Founding venue</span></span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== Main ===== -->
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 class="greet">Good afternoon, Greenpoint</h1>
+          <div class="sub">Thursday, June 25 · 5 bookings on the calendar today</div>
+        </div>
+        <div class="topbar-actions">
+          <a class="btn-request" href="../venue-booking-request/index.html">
+            <span class="pip">1</span> New request
+          </a>
+        </div>
+      </header>
+
+      <!-- KPI strip -->
+      <section class="kpis">
+        <div class="kpi">
+          <div class="kl">Bookings today</div>
+          <div class="kn num">6</div>
+          <div class="kd up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12l5-5 4 4 5-6"/></svg>+2 vs last Thursday</div>
+        </div>
+        <div class="kpi">
+          <div class="kl">Occupancy</div>
+          <div class="kn num">72%</div>
+          <div class="kd">8 of 11 evening slots filled</div>
+        </div>
+        <div class="kpi">
+          <div class="kl">Revenue pending</div>
+          <div class="kn num">$1,840</div>
+          <div class="kd">Clears on your next payout</div>
+        </div>
+        <div class="kpi">
+          <div class="kl">No-shows</div>
+          <div class="kn num">1</div>
+          <div class="kd warn">This week, charged to the crew</div>
+        </div>
+      </section>
+
+      <!-- Calendar + today's list -->
+      <section class="grid">
+        <!-- Week grid -->
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2 class="pt">This week</h2>
+              <div class="ps">Mon Jun 22 &ndash; Sun Jun 28</div>
+            </div>
+            <div class="legend">
+              <span><i class="c"></i>Confirmed</span>
+              <span><i class="n"></i>New request</span>
+            </div>
+          </div>
+          <div class="cal-wrap">
+            <div class="cal-head" id="cal-head"></div>
+            <div class="cal-body" id="cal-body"></div>
+          </div>
+        </div>
+
+        <!-- Today's bookings -->
+        <div class="panel today-list">
+          <div class="panel-head">
+            <div>
+              <h2 class="pt">Today</h2>
+              <div class="ps">Thursday, June 25</div>
+            </div>
+          </div>
+          <div class="tl-summary">
+            <span class="hero num">$1,338</span>
+            <span class="ht">booked today across 5 groups</span>
+          </div>
+          <div id="today-rows"></div>
+          <div class="tl-foot"><a href="../venue-calendar/index.html">Manage availability</a></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+<script>
+  // ===== Stub data: a believable week for an escape-room venue =====
+  // day: 0=Mon ... 6=Sun · start/dur in hours (24h) · status: confirmed | new
+  const WEEK = [
+    {dow:"Mon",dd:22}, {dow:"Tue",dd:23}, {dow:"Wed",dd:24},
+    {dow:"Thu",dd:25,today:true}, {dow:"Fri",dd:26}, {dow:"Sat",dd:27},
+    {dow:"Sun",dd:28,closed:true},
+  ];
+  const CAL_START = 12, CAL_END = 22, HR = 48; // noon to 10pm
+  const NOW = {day:3, hour:13.25};            // Thu 1:15pm
+
+  const BOOKINGS = [
+    // Mon
+    {day:0,start:18,dur:1.25,room:"The Lost Vault",guests:4},
+    {day:0,start:20,dur:1.25,room:"Cryptic Manor",guests:6},
+    // Tue
+    {day:1,start:16.5,dur:1.25,room:"Prohibition",guests:5},
+    {day:1,start:19,dur:1.25,room:"The Lost Vault",guests:5},
+    // Wed
+    {day:2,start:14,dur:1.25,room:"Cryptic Manor",guests:4},
+    {day:2,start:18.5,dur:1.25,room:"The Lost Vault",guests:6},
+    {day:2,start:20.5,dur:1.25,room:"Prohibition",guests:7},
+    // Thu (today)
+    {day:3,start:14,dur:1.25,room:"The Lost Vault",guests:5,leader:"Maya R.",amt:240},
+    {day:3,start:16.5,dur:1.25,room:"Cryptic Manor",guests:4,leader:"Devon K.",amt:200},
+    {day:3,start:18,dur:1.25,room:"The Lost Vault",guests:6,leader:"Priya S.",amt:288},
+    {day:3,start:19.5,dur:1.25,room:"Prohibition",guests:8,leader:"Marcus T.",amt:360,status:"new"},
+    {day:3,start:21,dur:1.25,room:"Cryptic Manor",guests:5,leader:"Alex W.",amt:250},
+    // Fri
+    {day:4,start:17,dur:1.25,room:"The Lost Vault",guests:6},
+    {day:4,start:19,dur:1.25,room:"Prohibition",guests:8},
+    {day:4,start:21,dur:1.25,room:"Cryptic Manor",guests:5},
+    // Sat
+    {day:5,start:12.5,dur:1.25,room:"The Lost Vault",guests:5},
+    {day:5,start:15,dur:1.25,room:"Cryptic Manor",guests:6},
+    {day:5,start:17.5,dur:1.25,room:"Prohibition",guests:8},
+    {day:5,start:20,dur:1.25,room:"The Lost Vault",guests:6},
+  ];
+
+  const fmtTime = h => {
+    const hr = Math.floor(h), min = Math.round((h-hr)*60);
+    const ap = hr >= 12 ? "PM" : "AM";
+    let h12 = hr % 12; if (h12 === 0) h12 = 12;
+    return {t: h12 + (min ? ":" + String(min).padStart(2,"0") : ""), m: ap};
+  };
+
+  // ---- Calendar head ----
+  const head = document.getElementById("cal-head");
+  head.innerHTML = '<div class="ch-corner"></div>' + WEEK.map(d => {
+    const cls = (d.today ? " today" : "") + (d.closed ? " closed" : "");
+    return `<div class="dh${cls}"><div class="dow">${d.dow}</div><div class="dd num">${d.dd}</div></div>`;
+  }).join("");
+
+  // ---- Calendar body ----
+  const body = document.getElementById("cal-body");
+  let html = '<div class="cal-hours">';
+  for (let h = CAL_START; h <= CAL_END; h++){
+    const f = fmtTime(h);
+    html += `<div class="hr" style="top:${(h-CAL_START)*HR}px">${f.t} ${f.m}</div>`;
+  }
+  html += '</div>';
+
+  WEEK.forEach((d, i) => {
+    const cls = (d.today ? " today" : "") + (d.closed ? " closed" : "");
+    html += `<div class="cal-col${cls}" data-day="${i}">`;
+    if (d.closed) html += '<span class="closed-tag">Closed</span>';
+    BOOKINGS.filter(b => b.day === i).forEach(b => {
+      const top = (b.start - CAL_START) * HR;
+      const h = b.dur * HR - 3;
+      const f = fmtTime(b.start);
+      const isNew = b.status === "new";
+      html += `<div class="ev${isNew ? " new" : ""}" style="top:${top}px;height:${h}px">
+        <span class="et">${f.t}${isNew ? '<span class="ntag">NEW</span>' : ''}</span>
+        <span class="er">${b.room.replace("The ","")} · ${b.guests}</span></div>`;
+    });
+    if (i === NOW.day){
+      const nt = (NOW.hour - CAL_START) * HR;
+      html += `<div class="now" style="top:${nt}px"></div>`;
+    }
+    html += '</div>';
+  });
+  body.innerHTML = html;
+
+  // ---- Today's list ----
+  const rows = document.getElementById("today-rows");
+  rows.innerHTML = BOOKINGS.filter(b => b.day === 3).map(b => {
+    const f = fmtTime(b.start);
+    const isNew = b.status === "new";
+    const href = isNew ? "../venue-booking-request/index.html" : "../venue-booking-detail/index.html";
+    return `<a class="booking${isNew ? " is-new" : ""}" href="${href}">
+      <div class="b-time"><div class="t num">${f.t}</div><div class="m">${f.m}</div></div>
+      <div class="b-main">
+        <div class="room">${b.room}</div>
+        <div class="meta">${b.leader} · ${b.guests} guests</div>
+      </div>
+      <div class="b-right">
+        <div class="b-amt num">$${b.amt}</div>
+        <span class="pill ${isNew ? "new" : "confirmed"}">${isNew ? "New request" : "Confirmed"}</span>
+      </div>
+    </a>`;
+  }).join("");
+</script>
+</body>
+</html>

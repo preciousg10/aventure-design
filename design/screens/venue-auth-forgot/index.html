@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventure for Venues: Reset your password</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF6EE; --card:#FFFFFF; --primary:#E2693E; --secondary:#2D6A4F;
+    --success:#3D8060; --ink:#2A2521; --muted:#7A6E68; --divider:#ECE4D8; --danger:#A2462A;
+    --font-display:"Fraunces",Georgia,serif; --font-body:"Satoshi","Inter",Arial,sans-serif;
+    --radius-button:14px; --radius-card:16px; --radius-input:12px; --radius-pill:100px;
+    --shadow-card:0 1px 2px rgba(42,37,33,0.05), 0 8px 24px rgba(42,37,33,0.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  /* Prototype is view-only: non-interactive text shows no I-beam and can't be selected. */
+  html{-webkit-tap-highlight-color:transparent;}
+  body{cursor:default;}
+  *{-webkit-user-select:none;user-select:none;}
+  input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;cursor:auto;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.4;min-height:100vh;}
+  .shell{max-width:1040px;margin:0 auto;padding:40px 28px 64px;display:grid;grid-template-columns:320px 1fr;gap:48px;align-items:start;}
+  .context{position:sticky;top:40px;}
+  .wordmark{display:flex;align-items:baseline;gap:8px;margin-bottom:28px;}
+  .wordmark .name{font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--ink);}
+  .wordmark .tag{font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--secondary);background:rgba(45,106,79,0.10);padding:3px 8px;border-radius:var(--radius-pill);}
+  .context h1{font-family:var(--font-display);font-weight:600;font-size:28px;line-height:1.2;color:var(--ink);margin-bottom:12px;}
+  .context p.lede{color:var(--muted);font-size:15px;max-width:34ch;}
+  .form-card{background:var(--card);border:0.5px solid var(--divider);border-radius:var(--radius-card);box-shadow:var(--shadow-card);padding:32px;max-width:480px;}
+  .form-card h2{font-family:var(--font-display);font-weight:600;font-size:22px;margin-bottom:6px;}
+  .form-card .sub{color:var(--muted);font-size:14px;margin-bottom:24px;}
+  .field{margin-bottom:20px;}
+  .field > label{display:block;font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+  input[type=email]{width:100%;height:48px;padding:0 14px;font-family:var(--font-body);font-size:16px;color:var(--ink);background:var(--card);border:1px solid var(--divider);border-radius:var(--radius-input);transition:border-color .15s,box-shadow .15s;}
+  input:focus{outline:none;border-color:var(--secondary);box-shadow:0 0 0 3px rgba(45,106,79,0.18);}
+  .field.invalid input{border-color:var(--danger);}
+  .field.invalid input:focus{box-shadow:0 0 0 3px rgba(162,70,42,0.18);}
+  .error-msg{display:none;color:var(--danger);font-size:13px;margin-top:6px;font-weight:500;}
+  .field.invalid .error-msg{display:block;}
+  .btn-primary{width:100%;height:52px;margin-top:4px;background:var(--primary);color:var(--ink);font-family:var(--font-body);font-weight:500;font-size:15px;border:none;border-radius:var(--radius-button);cursor:pointer;transition:filter .15s;}
+  .btn-primary:hover{filter:brightness(0.97);}
+  .btn-primary:disabled{opacity:.7;cursor:progress;}
+  .btn-primary:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(42,37,33,0.45);}
+  .back{margin-top:18px;font-size:14px;}
+  .back a{color:var(--secondary);font-weight:500;text-decoration:none;}
+  .back a:hover{text-decoration:underline;}
+  .sent{display:none;align-items:flex-start;gap:10px;background:rgba(61,128,96,0.08);border:0.5px solid rgba(61,128,96,0.35);border-radius:var(--radius-input);padding:14px;color:var(--ink);font-size:14px;margin-bottom:20px;}
+  .sent.show{display:flex;}
+  .sent svg{color:var(--success);flex:0 0 auto;margin-top:1px;}
+  h1,h2,.wordmark,.tag,.lede,.sub,.field>label,.back,.sent{cursor:default;user-select:none;}
+  @media (max-width:760px){.shell{grid-template-columns:1fr;gap:24px;padding:28px 20px 48px;}.context{position:static;}.context p.lede{max-width:none;}.form-card{padding:24px 20px;max-width:none;}}
+</style>
+</head>
+<body>
+  <main class="shell">
+    <aside class="context">
+      <div class="wordmark"><span class="name">Aventure</span><span class="tag">for venues</span></div>
+      <h1>Reset your password</h1>
+      <p class="lede">Enter your email and we'll send you a link to set a new one.</p>
+    </aside>
+
+    <section class="form-card">
+      <h2>Forgot password</h2>
+      <p class="sub">We'll email a reset link to the address on file.</p>
+      <div class="sent" id="sent">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        <span>If that email is on file, a reset link is on its way. Check your inbox.</span>
+      </div>
+      <form id="forgotForm" novalidate>
+        <div class="field" id="f-email">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required>
+          <span class="error-msg">Enter a valid email address.</span>
+        </div>
+        <button type="submit" class="btn-primary" id="submit-btn">Send reset link</button>
+      </form>
+      <p class="back"><a href="../venue-auth-login/index.html">Back to log in</a></p>
+    </section>
+  </main>
+
+  <script>
+    // Stub only — no backend. Real reset emails come with Supabase Auth.
+    const form = document.getElementById('forgotForm');
+    const emailInput = document.getElementById('email');
+    const submitBtn = document.getElementById('submit-btn');
+    const sent = document.getElementById('sent');
+    const emailOk = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+    emailInput.addEventListener('blur', () => { if (emailInput.value.trim()) emailInput.closest('.field').classList.toggle('invalid', !emailOk(emailInput.value)); });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const ok = emailOk(emailInput.value);
+      emailInput.closest('.field').classList.toggle('invalid', !ok);
+      if (!ok){ emailInput.focus(); return; }
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+      setTimeout(() => { sent.classList.add('show'); submitBtn.textContent = 'Resend link'; submitBtn.disabled = false; }, 700);
+    });
+  </script>
+</body>
+</html>

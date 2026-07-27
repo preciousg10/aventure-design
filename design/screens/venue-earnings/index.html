@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventure for Venues: Earnings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+  /* ===== Golden Hour tokens (venue app) — secondary overridden to #2D6A4F ===== */
+  :root{
+    --bg:#FBF6EE; --card:#FFFFFF; --primary:#E2693E; --secondary:#2D6A4F;
+    --success:#3D8060; --ink:#2A2521; --muted:#7A6E68; --divider:#ECE4D8; --danger:#A2462A;
+    --font-display:"Fraunces",Georgia,serif; --font-body:"Satoshi","Inter",Arial,sans-serif;
+    --radius-button:14px; --radius-card:16px; --radius-input:12px; --radius-pill:100px;
+    --shadow-card:0 1px 2px rgba(42,37,33,0.05), 0 8px 24px rgba(42,37,33,0.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  /* Prototype is view-only: non-interactive text shows no I-beam and can't be selected. */
+  html{-webkit-tap-highlight-color:transparent;}
+  body{cursor:default;}
+  *{-webkit-user-select:none;user-select:none;}
+  input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;cursor:auto;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.4;min-height:100vh;}
+  .num{font-variant-numeric:tabular-nums;}
+
+  /* ===== App shell (shared with V5 / V6) ===== */
+  .app{display:flex;align-items:stretch;min-height:100vh;}
+  .sidebar{
+    width:236px;flex:0 0 236px;background:var(--bg);border-right:0.5px solid var(--divider);
+    padding:26px 16px 22px;display:flex;flex-direction:column;gap:26px;position:sticky;top:0;height:100vh;
+  }
+  .wordmark{display:flex;align-items:baseline;gap:8px;padding:0 8px;}
+  .wordmark .name{font-family:var(--font-display);font-weight:700;font-size:21px;color:var(--ink);}
+  .wordmark .tag{font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--secondary);background:rgba(45,106,79,0.10);padding:3px 7px;border-radius:var(--radius-pill);}
+  .nav{display:flex;flex-direction:column;gap:22px;flex:1 1 auto;}
+  .nav-group{display:flex;flex-direction:column;gap:2px;}
+  .nav-group .gl{font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);padding:0 8px 6px;}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:9px 10px;min-height:44px;border-radius:10px;color:var(--muted);font-size:14px;font-weight:500;text-decoration:none;transition:background .14s,color .14s;}
+  .nav-item svg{width:18px;height:18px;flex:0 0 auto;stroke-width:1.6;}
+  .nav-item:hover{background:var(--card);color:var(--ink);}
+  .nav-item.active{background:rgba(45,106,79,0.10);color:var(--secondary);font-weight:700;}
+  .nav-item:focus-visible{outline:2px solid var(--secondary);outline-offset:2px;}
+  .nav-item .count{margin-left:auto;font-size:11px;font-weight:700;color:#fff;background:var(--primary);min-width:18px;height:18px;border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;padding:0 5px;}
+  .nav-foot{display:flex;flex-direction:column;gap:10px;}
+  .venue-chip{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;border:0.5px solid var(--divider);background:var(--card);}
+  .venue-chip .ava{width:34px;height:34px;border-radius:var(--radius-pill);flex:0 0 auto;background:var(--secondary);color:#fff;font-family:var(--font-display);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .venue-chip .vn{font-size:13px;font-weight:700;color:var(--ink);line-height:1.2;}
+  .venue-chip .vs{font-size:11px;color:var(--muted);}
+
+  .main{flex:1 1 auto;min-width:0;padding:26px 34px 56px;max-width:1180px;}
+  .topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;}
+  .topbar .greet{font-family:var(--font-display);font-weight:600;font-size:27px;color:var(--ink);line-height:1.15;}
+  .topbar .sub{color:var(--muted);font-size:14px;margin-top:4px;}
+
+  /* ===== Connect-bank hero (ElevenReader "payouts disabled" pattern) ===== */
+  .connect{
+    position:relative;overflow:hidden;margin-bottom:22px;padding:24px 26px;
+    background:var(--card);border:0.5px solid var(--divider);border-radius:var(--radius-card);box-shadow:var(--shadow-card);
+    display:flex;align-items:center;gap:24px;
+  }
+  .connect::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--primary);}
+  .connect.connected::before{background:var(--success);}
+  .connect.connected{background:rgba(61,128,96,0.06);border-color:rgba(61,128,96,0.30);}
+  .connect-icon{
+    flex:0 0 auto;width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+    background:rgba(226,105,62,0.12);color:var(--primary);
+  }
+  .connect.connected .connect-icon{background:rgba(61,128,96,0.14);color:var(--success);}
+  .connect-icon svg{width:26px;height:26px;stroke-width:1.7;}
+  .connect-body{flex:1 1 auto;min-width:0;}
+  .connect-eyebrow{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--primary);margin-bottom:6px;}
+  .connect.connected .connect-eyebrow{color:var(--success);}
+  .connect-title{font-family:var(--font-display);font-weight:600;font-size:21px;color:var(--ink);line-height:1.2;}
+  .connect-text{font-size:14px;color:var(--muted);margin-top:7px;max-width:62ch;}
+  .connect-text b{color:var(--ink);font-weight:700;}
+  .connect-actions{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+  .btn-stripe{
+    display:inline-flex;align-items:center;gap:9px;height:48px;padding:0 20px;cursor:pointer;
+    background:var(--primary);color:var(--ink);font-family:var(--font-body);font-weight:700;font-size:15px;
+    border:none;border-radius:var(--radius-button);transition:filter .14s;
+  }
+  .btn-stripe:hover{filter:brightness(0.97);}
+  .btn-stripe:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+  .btn-stripe svg{width:17px;height:17px;stroke-width:2;}
+  .connect-note{font-size:12px;color:var(--muted);}
+  .connect-done{display:none;align-items:center;gap:8px;font-size:13.5px;font-weight:700;color:var(--success);}
+  .connect-done svg{width:18px;height:18px;stroke-width:2.2;}
+  .connect.connected .btn-stripe,.connect.connected .connect-note{display:none;}
+  .connect.connected .connect-done{display:flex;}
+
+  /* ===== Summary rail / KPI strip (Monarch hero-number pattern) ===== */
+  .kpis{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:16px;margin-bottom:22px;align-items:stretch;}
+  .kpi{
+    background:var(--card);border:0.5px solid var(--divider);border-radius:var(--radius-card);
+    box-shadow:var(--shadow-card);padding:18px 20px 18px;display:flex;flex-direction:column;
+  }
+  .kpi .kl{font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);}
+  .kpi .kn{font-family:var(--font-body);font-weight:700;font-size:32px;color:var(--ink);line-height:1;margin:12px 0 8px;}
+  .kpi .kd{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:auto;}
+  .kpi.hero{background:var(--secondary);border-color:var(--secondary);}
+  .kpi.hero .kl{color:rgba(255,255,255,0.82);}
+  .kpi.hero .kn{font-size:52px;color:#fff;margin:14px 0 10px;}
+  .kpi.hero .kd{color:rgba(255,255,255,0.85);}
+  .btn-payout{
+    display:none;margin-top:14px;align-self:flex-start;align-items:center;gap:8px;height:42px;padding:0 16px;cursor:pointer;
+    background:var(--primary);color:var(--ink);font-family:var(--font-body);font-weight:700;font-size:14px;
+    border:none;border-radius:var(--radius-button);transition:filter .14s;
+  }
+  .btn-payout.show{display:inline-flex;}
+  .btn-payout:hover{filter:brightness(0.97);}
+  .btn-payout:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+  .btn-payout svg{width:15px;height:15px;stroke-width:2;}
+  .payout-locked{
+    display:flex;align-items:center;gap:7px;margin-top:14px;font-size:12px;color:rgba(255,255,255,0.78);
+  }
+  .payout-locked svg{width:14px;height:14px;stroke-width:2;}
+  .kpi.hero.connected .payout-locked{display:none;}
+
+  /* ===== Panels & history table ===== */
+  .panel{background:var(--card);border:0.5px solid var(--divider);border-radius:var(--radius-card);box-shadow:var(--shadow-card);overflow:hidden;margin-bottom:22px;}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 22px 14px;}
+  .panel-head .pt{font-family:var(--font-display);font-weight:600;font-size:18px;color:var(--ink);}
+  .panel-head .ps{font-size:12.5px;color:var(--muted);margin-top:2px;}
+
+  .pay-table{width:100%;border-collapse:collapse;}
+  .pay-table thead th{
+    font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);text-align:left;
+    padding:6px 22px 12px;border-bottom:0.5px solid var(--divider);
+  }
+  .pay-table th.r,.pay-table td.r{text-align:right;}
+  .pay-table tbody td{padding:15px 22px;border-bottom:0.5px solid var(--divider);font-size:14px;color:var(--ink);vertical-align:middle;}
+  .pay-table tbody tr:hover{background:var(--bg);}
+  .pay-date{font-weight:700;color:var(--ink);}
+  .pay-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .pay-amt{font-weight:700;color:var(--ink);}
+  .pay-table tfoot td{padding:16px 22px;font-size:14px;}
+  .pay-table tfoot .tot-l{font-weight:700;color:var(--ink);}
+  .pay-table tfoot .tot-v{font-family:var(--font-body);font-weight:700;font-size:18px;color:var(--ink);}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:0.03em;padding:4px 10px;border-radius:var(--radius-pill);}
+  .pill i{width:6px;height:6px;border-radius:50%;flex:0 0 auto;}
+  .pill.paid{background:rgba(61,128,96,0.14);color:var(--success);}
+  .pill.paid i{background:var(--success);}
+  .pill.pending{background:rgba(124,110,104,0.12);color:var(--muted);}
+  .pill.pending i{background:var(--muted);}
+
+  /* ===== FAQ / plain-language note ===== */
+  .faq{padding:6px 22px 20px;}
+  .faq-row{display:flex;gap:13px;padding:15px 0;border-top:0.5px solid var(--divider);}
+  .faq-row:first-child{border-top:none;}
+  .faq-ic{flex:0 0 auto;width:34px;height:34px;border-radius:10px;background:rgba(45,106,79,0.10);color:var(--secondary);display:flex;align-items:center;justify-content:center;}
+  .faq-ic svg{width:18px;height:18px;stroke-width:1.7;}
+  .faq-q{font-size:14px;font-weight:700;color:var(--ink);}
+  .faq-a{font-size:13.5px;color:var(--muted);margin-top:3px;max-width:72ch;}
+  .faq-a b{color:var(--ink);font-weight:700;}
+
+  .greet,.sub,.kl,.kn,.kd,.pt,.ps,.gl,.wordmark,.tag,.vn,.vs,.connect-eyebrow,.connect-title,.connect-text,.connect-note,.faq-q,.faq-a{cursor:default;user-select:none;}
+
+  /* ===== Responsive ===== */
+  @media (max-width:1080px){
+    .kpis{grid-template-columns:1fr 1fr;}
+    .kpi.hero{grid-column:1 / -1;}
+  }
+  @media (max-width:760px){
+    .app{flex-direction:column;}
+    .sidebar{width:100%;flex:0 0 auto;height:auto;position:static;border-right:none;border-bottom:0.5px solid var(--divider);flex-direction:row;align-items:center;gap:18px;overflow-x:auto;padding:14px 16px;}
+    .nav{flex-direction:row;gap:14px;}
+    .nav-group{flex-direction:row;gap:2px;}
+    .nav-group .gl{display:none;}
+    .nav-item span.lbl{display:none;}
+    .nav-item{min-width:44px;justify-content:center;padding:9px;}
+    .nav-foot,.venue-chip .vt{display:none;}
+    .main{padding:20px 18px 40px;}
+    .topbar{flex-direction:column;align-items:flex-start;}
+    .connect{flex-direction:column;align-items:flex-start;gap:18px;}
+    .connect-actions{align-items:flex-start;width:100%;}
+    .btn-stripe{width:100%;justify-content:center;}
+    .pay-wrap{overflow-x:auto;}
+    .pay-table{min-width:560px;}
+  }
+  @media (max-width:520px){
+    .kpis{grid-template-columns:1fr;}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+  <div class="app">
+    <!-- ===== Left navigation (Earnings active) ===== -->
+    <aside class="sidebar">
+      <div class="wordmark"><span class="name">Aventure</span><span class="tag">For Venues</span></div>
+      <nav class="nav">
+        <div class="nav-group">
+          <a class="nav-item" href="../venue-dashboard/index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+            <span class="lbl">Dashboard</span>
+          </a>
+          <a class="nav-item" href="../venue-calendar/index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg>
+            <span class="lbl">Calendar</span>
+          </a>
+          <a class="nav-item" href="../venue-booking-request/index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 5.5h18M3 12h18M3 18.5h18"/></svg>
+            <span class="lbl">Bookings</span>
+            <span class="count">1</span>
+          </a>
+        </div>
+        <div class="nav-group">
+          <span class="gl">Venue</span>
+          <a class="nav-item" href="../venue-offerings/index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7l2-3h14l2 3M3 7v12.5A1.5 1.5 0 004.5 21h15a1.5 1.5 0 001.5-1.5V7M3 7h18M9 11a3 3 0 006 0"/></svg>
+            <span class="lbl">Offerings</span>
+          </a>
+          <a class="nav-item" href="../venue-availability/index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+            <span class="lbl">Availability</span>
+          </a>
+          <a class="nav-item" href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20a6.5 6.5 0 0113 0"/></svg>
+            <span class="lbl">Venue profile</span>
+          </a>
+        </div>
+        <div class="nav-group">
+          <span class="gl">Finance</span>
+          <a class="nav-item active" href="#" aria-current="page">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16.5 14.5h1.5"/></svg>
+            <span class="lbl">Earnings</span>
+          </a>
+        </div>
+      </nav>
+      <div class="nav-foot">
+        <a class="nav-item" href="../venue-settings/index.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18 6l-2 2M8 16l-2 2M18 18l-2-2M8 8L6 6"/></svg>
+          <span class="lbl">Settings</span>
+        </a>
+        <div class="venue-chip">
+          <span class="ava">GE</span>
+          <span class="vt"><span class="vn">Greenpoint Escape Co.</span><br><span class="vs">Founding venue</span></span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== Main ===== -->
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 class="greet">Earnings</h1>
+          <div class="sub">Your payouts, history, and running total in one place.</div>
+        </div>
+      </header>
+
+      <!-- Connect-bank hero (ElevenReader payouts-disabled pattern) -->
+      <section class="connect" id="connect-card">
+        <div class="connect-icon" id="connect-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9.5L12 4l9 5.5M5 10v8.5M19 10v8.5M9 10v8.5M15 10v8.5M3 19.5h18"/></svg>
+        </div>
+        <div class="connect-body">
+          <div class="connect-eyebrow" id="connect-eyebrow">First payout ready</div>
+          <h2 class="connect-title" id="connect-title">Connect your bank to receive $1,840</h2>
+          <p class="connect-text" id="connect-text">You have <b>$1,840</b> waiting from this week's bookings. This is the first time we need your bank details, we held off until you actually had money to collect. As a <b>founding venue you keep every dollar</b>, Aventure takes zero commission. Connecting takes about two minutes through Stripe.</p>
+        </div>
+        <div class="connect-actions">
+          <button class="btn-stripe" id="connect-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18"/></svg>
+            Connect with Stripe
+          </button>
+          <span class="connect-note" id="connect-note">Secure bank connection, powered by Stripe.</span>
+          <span class="connect-done" id="connect-done">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 6L9 17l-5-5"/></svg>
+            Bank connected, ready to pay out
+          </span>
+        </div>
+      </section>
+
+      <!-- Summary rail (Monarch hero-number pattern) -->
+      <section class="kpis">
+        <div class="kpi hero" id="hero-kpi">
+          <div class="kl">Available to pay out</div>
+          <div class="kn num">$1,840</div>
+          <div class="kd">From 11 confirmed bookings this week</div>
+          <button class="btn-payout" id="payout-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 4v12M6 10l6 6 6-6"/><path d="M5 20h14"/></svg>
+            Pay out $1,840 now
+          </button>
+          <span class="payout-locked" id="payout-locked">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+            Connect your bank to enable payouts
+          </span>
+        </div>
+        <div class="kpi">
+          <div class="kl">Paid out all time</div>
+          <div class="kn num">$0</div>
+          <div class="kd">No payouts yet, this is your first</div>
+        </div>
+        <div class="kpi">
+          <div class="kl">This month</div>
+          <div class="kn num">$1,840</div>
+          <div class="kd">June 2026, all pending</div>
+        </div>
+      </section>
+
+      <!-- Payout / earnings history -->
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2 class="pt">Payout history</h2>
+            <div class="ps">Bookings grouped by week. Pending clears on your first payout.</div>
+          </div>
+        </div>
+        <div class="pay-wrap">
+          <table class="pay-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Bookings</th>
+                <th>Status</th>
+                <th class="r">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="pay-date">Jun 22 to 28</div>
+                  <div class="pay-sub">Lost Vault, Cryptic Manor, Prohibition</div>
+                </td>
+                <td class="num">11 confirmed</td>
+                <td><span class="pill pending"><i></i>Pending</span></td>
+                <td class="r pay-amt num">$1,840</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="pay-date">Jun 15 to 21</div>
+                  <div class="pay-sub">Bookings before you joined Aventure</div>
+                </td>
+                <td class="num">0</td>
+                <td><span class="pill paid"><i></i>Paid</span></td>
+                <td class="r pay-amt num">$0</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td class="tot-l">Total available</td>
+                <td class="num">11 bookings</td>
+                <td><span class="pill pending"><i></i>Pending</span></td>
+                <td class="r tot-v num">$1,840</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <!-- Plain-language FAQ / note -->
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2 class="pt">How payouts work</h2>
+            <div class="ps">Plain language, no surprises.</div>
+          </div>
+        </div>
+        <div class="faq">
+          <div class="faq-row">
+            <div class="faq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg></div>
+            <div>
+              <div class="faq-q">When does the money arrive?</div>
+              <div class="faq-a">Once your bank is connected, your first payout sends right away. After that, money lands in your account <b>two to three business days</b> after each booking is marked done.</div>
+            </div>
+          </div>
+          <div class="faq-row">
+            <div class="faq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v18M16.5 7.5c0-1.7-2-2.5-4.5-2.5S7.5 5.8 7.5 7.5 9.5 10 12 10.5s4.5 1.3 4.5 3-2 2.5-4.5 2.5-4.5-.8-4.5-2.5"/></svg></div>
+            <div>
+              <div class="faq-q">What does Aventure take?</div>
+              <div class="faq-a">Nothing. As a <b>founding venue you pay zero commission</b>. The full amount a crew pays is yours. We lock this in for your founding period.</div>
+            </div>
+          </div>
+          <div class="faq-row">
+            <div class="faq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg></div>
+            <div>
+              <div class="faq-q">Why connect a bank only now?</div>
+              <div class="faq-a">We do not ask for bank details during onboarding. We wait until you have a real payout ready, so the only time Stripe appears is when there is money to send you. Your details are held securely by Stripe, not by us.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+<script>
+  // ===== Connect-with-Stripe flips the hero card to a connected state, =====
+  // ===== then reveals and enables the "Pay out" action. Vanilla JS. =====
+  const card     = document.getElementById("connect-card");
+  const heroKpi  = document.getElementById("hero-kpi");
+  const connectBtn = document.getElementById("connect-btn");
+  const payoutBtn  = document.getElementById("payout-btn");
+  const title    = document.getElementById("connect-title");
+  const text     = document.getElementById("connect-text");
+  const eyebrow  = document.getElementById("connect-eyebrow");
+  const icon     = document.getElementById("connect-icon");
+
+  connectBtn.addEventListener("click", () => {
+    card.classList.add("connected");
+    heroKpi.classList.add("connected");
+    eyebrow.textContent = "Bank connected";
+    title.textContent = "You are all set to get paid";
+    text.innerHTML = "Your bank is connected through Stripe. Your <b>$1,840</b> is ready to send, and future payouts will land automatically two to three days after each booking. As a <b>founding venue you keep every dollar</b>.";
+    icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 6L9 17l-5-5"/></svg>';
+    payoutBtn.classList.add("show");
+  });
+
+  let paid = false;
+  payoutBtn.addEventListener("click", () => {
+    if (paid) return;
+    paid = true;
+    payoutBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 6L9 17l-5-5"/></svg> Payout on its way';
+    payoutBtn.disabled = true;
+    payoutBtn.style.opacity = "0.85";
+    payoutBtn.style.cursor = "default";
+  });
+</script>
+</body>
+</html>

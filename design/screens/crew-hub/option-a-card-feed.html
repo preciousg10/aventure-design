@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventure · Crew Hub — Option A (Card Feed)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF6EE; --card:#FFFFFF; --primary:#E2693E; --secondary:#138A6B;
+    --success:#3D8060; --ink:#2A2521; --muted:#7A6E68; --divider:#ECE4D8;
+    --font-display:"Fraunces",Georgia,serif; --font-body:"Satoshi","Inter",Arial,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  body{background:#15110d;font-family:var(--font-body);display:flex;flex-direction:column;
+       align-items:center;gap:18px;padding:40px 0;min-height:100vh;color:var(--ink);}
+  .caption{color:#cdbfb0;font-size:13px;letter-spacing:.04em;}
+
+  /* ---- device frame ---- */
+  .frame{width:390px;height:844px;background:var(--bg);border-radius:44px;overflow:hidden;
+         position:relative;display:flex;flex-direction:column;
+         box-shadow:0 30px 80px rgba(0,0,0,.55);}
+
+  /* ---- green header (status bar + nav) ---- */
+  .header{background:var(--secondary);color:#fff;flex:0 0 auto;}
+  .statusbar{height:59px;display:flex;align-items:flex-end;justify-content:space-between;
+             padding:0 26px 8px;}
+  .statusbar .time{font-weight:700;font-size:15px;letter-spacing:.02em;}
+  .sys{display:flex;align-items:center;gap:6px;}
+  .topnav{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px 6px;}
+  .wordmark{font-family:var(--font-display);font-weight:600;font-size:23px;letter-spacing:.01em;}
+  .bell{position:relative;}
+  .bell .dot{position:absolute;top:-1px;right:-1px;width:8px;height:8px;border-radius:50%;
+             background:var(--primary);border:1.5px solid var(--secondary);}
+
+  /* ---- scroll body ---- */
+  .body{flex:1 1 auto;overflow-y:auto;padding:18px 20px 8px;}
+  .body::-webkit-scrollbar{display:none;}
+  .greeting h1{font-family:var(--font-display);font-weight:600;font-size:22px;color:var(--ink);line-height:1.2;}
+  .greeting p{font-size:14px;color:var(--muted);margin-top:4px;}
+  .greeting{margin-bottom:18px;}
+
+  /* ---- crew card ---- */
+  .crew{background:var(--card);border:0.5px solid var(--divider);border-radius:16px;
+        padding:18px;margin-bottom:14px;box-shadow:0 1px 2px rgba(42,37,33,.04),0 8px 22px rgba(42,37,33,.05);}
+  .crew-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+  .crew-name{font-family:var(--font-display);font-weight:600;font-size:17px;color:var(--ink);}
+  .crew-sub{font-size:12px;color:var(--muted);margin-top:3px;}
+  .chev{color:var(--muted);flex:0 0 auto;margin-top:2px;}
+
+  /* status pills */
+  .pill{display:inline-flex;align-items:center;gap:6px;border-radius:100px;padding:5px 12px;
+        font-size:13px;font-weight:500;white-space:nowrap;}
+  .pill--active{background:var(--success);color:#fff;}
+  .pill--waiting{background:var(--primary);color:var(--ink);}
+  .pill--none{background:var(--divider);color:var(--muted);}
+  .pill .led{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.9;}
+
+  /* avatar row */
+  .avs{display:flex;align-items:center;margin:14px 0 4px;}
+  .av{width:34px;height:34px;border-radius:50%;border:2px solid var(--card);
+      margin-left:-9px;display:flex;align-items:center;justify-content:center;
+      font-size:12px;font-weight:700;color:#fff;}
+  .av:first-child{margin-left:0;}
+  .av--ring-active{box-shadow:0 0 0 2px var(--primary);}
+  .av--ring-idle{box-shadow:0 0 0 2px var(--divider);}
+  .av-more{width:34px;height:34px;border-radius:50%;margin-left:-9px;background:var(--bg);
+           border:2px solid var(--card);display:flex;align-items:center;justify-content:center;
+           font-size:11px;font-weight:700;color:var(--muted);box-shadow:0 0 0 2px var(--divider);}
+
+  .crew-foot{display:flex;align-items:center;justify-content:space-between;margin-top:14px;}
+  .last{font-size:12px;color:var(--muted);}
+
+  /* inline contextual CTA (idle crews only) */
+  .inline-cta{margin-top:14px;width:100%;height:44px;background:var(--primary);color:var(--ink);
+              border:none;border-radius:12px;font-family:var(--font-body);font-weight:500;
+              font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;}
+  .inline-ghost{margin-top:14px;width:100%;height:44px;background:transparent;color:var(--ink);
+              border:1px solid var(--divider);border-radius:12px;font-family:var(--font-body);
+              font-weight:500;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;}
+
+  /* live progress strip on active crew */
+  .progress{height:6px;border-radius:100px;background:var(--divider);margin-top:14px;overflow:hidden;}
+  .progress i{display:block;height:100%;width:45%;background:var(--success);border-radius:100px;}
+
+  /* ---- sticky CTA + tab bar ---- */
+  .bottom{flex:0 0 auto;background:var(--bg);}
+  .sticky-cta{padding:10px 20px 12px;background:linear-gradient(to top,var(--bg) 70%,rgba(251,246,238,0));}
+  .cta{width:100%;height:52px;background:var(--primary);color:var(--ink);border:none;
+       border-radius:14px;font-family:var(--font-body);font-weight:500;font-size:15px;
+       display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;
+       box-shadow:0 6px 18px rgba(226,105,62,.32);}
+  .tabbar{height:60px;background:var(--card);border-top:0.5px solid var(--divider);
+          display:flex;align-items:center;justify-content:space-around;padding-top:6px;}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;font-weight:500;}
+  .tab.active{color:var(--secondary);}
+  .home-ind{height:34px;display:flex;align-items:center;justify-content:center;background:var(--card);}
+  .home-ind i{width:134px;height:5px;border-radius:100px;background:rgba(42,37,33,.2);}
+</style>
+</head>
+<body>
+  <div class="caption">Aventure · Screen 10 — Crew Hub · <strong>Option A — Card Feed</strong></div>
+  <div class="frame">
+
+    <!-- header -->
+    <div class="header">
+      <div class="statusbar">
+        <span class="time">9:41</span>
+        <span class="sys">
+          <!-- signal -->
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          <!-- wifi -->
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="#fff"><path d="M8.5 2C5.6 2 2.9 3.1 1 5l1.5 1.5C4 5 6.2 4 8.5 4S13 5 14.5 6.5L16 5c-1.9-1.9-4.6-3-7.5-3z"/><path d="M8.5 6c-1.6 0-3.1.6-4.2 1.7L8.5 12l4.2-4.3C11.6 6.6 10.1 6 8.5 6z"/></svg>
+          <!-- battery -->
+          <svg width="26" height="12" viewBox="0 0 26 12"><rect x="0.5" y="0.5" width="22" height="11" rx="3" fill="none" stroke="#fff" stroke-opacity=".5"/><rect x="2" y="2" width="18" height="8" rx="1.5" fill="#fff"/><rect x="23.5" y="3.5" width="2" height="5" rx="1" fill="#fff" fill-opacity=".6"/></svg>
+        </span>
+      </div>
+      <div class="topnav">
+        <span class="wordmark">aventure</span>
+        <span class="bell">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="dot"></span>
+        </span>
+      </div>
+    </div>
+
+    <!-- body -->
+    <div class="body">
+      <div class="greeting">
+        <h1>Good evening, Zaydaan.</h1>
+        <p>You're in 3 crews · 1 quest live right now</p>
+      </div>
+
+      <!-- ACTIVE crew -->
+      <div class="crew">
+        <div class="crew-top">
+          <div>
+            <div class="crew-name">The Usual Suspects</div>
+            <div class="crew-sub">Speakeasy &amp; Late-Night Eats</div>
+          </div>
+          <span class="pill pill--active"><span class="led"></span>Quest active</span>
+        </div>
+        <div class="avs">
+          <div class="av av--ring-active" style="background:#C8643F">ZM</div>
+          <div class="av av--ring-active" style="background:#2D6A4F">KA</div>
+          <div class="av av--ring-active" style="background:#B98A3E">JP</div>
+          <div class="av av--ring-active" style="background:#3D8060">RS</div>
+          <div class="av av--ring-active" style="background:#7A6E68">DL</div>
+          <div class="av-more">+1</div>
+        </div>
+        <div class="progress"><i></i></div>
+        <div class="crew-foot">
+          <span class="last">Stop 2 of 4 · The Distillery District</span>
+          <button class="chev" style="background:none;border:none;cursor:pointer;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A6E68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+        <button class="inline-ghost">Open quest</button>
+      </div>
+
+      <!-- WAITING crew -->
+      <div class="crew">
+        <div class="crew-top">
+          <div>
+            <div class="crew-name">Frosh Week Forever</div>
+            <div class="crew-sub">Quest voted · waiting on payment</div>
+          </div>
+          <span class="pill pill--waiting"><span class="led"></span>Waiting for crew</span>
+        </div>
+        <div class="avs">
+          <div class="av av--ring-active" style="background:#3D8060">✓</div>
+          <div class="av av--ring-active" style="background:#3D8060">✓</div>
+          <div class="av av--ring-active" style="background:#3D8060">✓</div>
+          <div class="av av--ring-idle" style="background:#cdbfb0">MA</div>
+          <div class="av av--ring-idle" style="background:#cdbfb0">TO</div>
+        </div>
+        <div class="crew-foot">
+          <span class="last">3 of 5 paid · 19h 24m left</span>
+          <button class="chev" style="background:none;border:none;cursor:pointer;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A6E68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- IDLE crew (inline Start a quest) -->
+      <div class="crew">
+        <div class="crew-top">
+          <div>
+            <div class="crew-name">Sunday Run Club</div>
+            <div class="crew-sub">No quest planned</div>
+          </div>
+          <span class="pill pill--none"><span class="led"></span>No quest yet</span>
+        </div>
+        <div class="avs">
+          <div class="av av--ring-idle" style="background:#B98A3E">EC</div>
+          <div class="av av--ring-idle" style="background:#C8643F">NV</div>
+          <div class="av av--ring-idle" style="background:#2D6A4F">HK</div>
+          <div class="av-more">+2</div>
+        </div>
+        <div class="crew-foot">
+          <span class="last">Last quest 3 days ago</span>
+        </div>
+        <button class="inline-cta">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2A2521" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6 4.4 2.3 7.2L12 16.6 5.7 21l2.3-7.2-6-4.4h7.6z"/></svg>
+          Start a quest
+        </button>
+      </div>
+    </div>
+
+    <!-- sticky CTA + tab bar -->
+    <div class="bottom">
+      <div class="sticky-cta">
+        <button class="cta">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2A2521" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6 4.4 2.3 7.2L12 16.6 5.7 21l2.3-7.2-6-4.4h7.6z"/></svg>
+          Start a quest
+        </button>
+      </div>
+      <div class="tabbar">
+        <div class="tab active">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+          Home
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7A6E68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          Memories
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7A6E68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="16 8 14 14 8 16 10 10"/></svg>
+          Explore
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7A6E68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+          Profile
+        </div>
+      </div>
+      <div class="home-ind"><i></i></div>
+    </div>
+
+  </div>
+</body>
+</html>

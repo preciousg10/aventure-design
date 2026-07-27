@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#20412E">
+<title>Aventure — Crew Home v4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<style>
+  /* =====================================================================
+     AVENTURE — CREW HOME v4
+     Earthy-premium iteration. Refs: Arva, Felt, Say Briefly, Allbirds.
+     Palette: warm cream + deep forest green (primary) + muted olive
+     (secondary) + a pinpoint of harvest gold (warmth signal only).
+     Type: Bricolage Grotesque + Hanken Grotesk. Icons: Phosphor.
+     Keeps v3's quest-card structure, hierarchy, spacing.
+     ===================================================================== */
+  :root{
+    --bg:#F1E9D6;          /* warm cream ground */
+    --card:#FCF8EF;        /* lifted warm white card */
+    --forest:#20412E;      /* PRIMARY brand green */
+    --forest-press:#1A3826;
+    --forest-soft:#2C543C; /* subtle banner depth */
+    --olive:#6E754A;       /* muted secondary */
+    --gold:#E0AE3C;        /* tiny warmth accent only */
+    --ink:#23231C;
+    --ink-2:#5C5849;
+    --ink-3:#6E6857;
+    --line:#E7DDC8;
+    --cream:#F4EEDF;       /* text on forest */
+    --cream-mut:#B9C6B2;   /* muted text on forest */
+
+    --r-card:18px;
+    --r-pill:999px;
+
+    --shadow:0 1px 2px rgba(35,35,28,.04), 0 12px 26px -16px rgba(35,35,28,.26);
+    --pop:0 8px 22px -10px rgba(26,40,28,.34);
+
+    --fd:"Bricolage Grotesque",system-ui,sans-serif;
+    --fb:"Hanken Grotesk",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:rgba(0,0,0,.05);touch-action:manipulation;}
+  body{font-family:var(--fb);background:#ddd4bf;color:var(--ink);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:44px 24px 72px;gap:6px;-webkit-font-smoothing:antialiased;}
+  i[class^="ph"]{display:inline-block;line-height:1;}
+
+  .page-head{text-align:center;margin-bottom:16px;}
+  .page-head h1{font-family:var(--fd);font-size:22px;font-weight:800;letter-spacing:-0.01em;color:var(--forest);}
+  .page-head p{font-size:13px;color:#7c735c;margin-top:5px;}
+  .stage{display:flex;gap:52px;flex-wrap:wrap;justify-content:center;align-items:flex-start;}
+  .frame-wrap{display:flex;flex-direction:column;align-items:center;gap:15px;}
+  .frame-label{font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7c735c;}
+  .frame-label b{color:var(--forest);}
+
+  /* Phone shell — exact 390x844 */
+  .phone{width:390px;height:844px;background:var(--bg);border-radius:46px;position:relative;overflow:hidden;box-shadow:0 0 0 9px #14130f,0 30px 64px -16px rgba(0,0,0,.5);}
+  .sheet{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:118px;height:30px;background:#14130f;border-radius:0 0 17px 17px;z-index:40;}
+
+  .statusbar{height:50px;flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 7px;font-size:14px;font-weight:700;letter-spacing:.02em;z-index:20;}
+  .statusbar .ic{display:flex;gap:6px;align-items:center;font-size:16px;}
+
+  /* ===== Crew banner — calm deep forest field ===== */
+  .banner{position:relative;flex:0 0 auto;background:var(--forest);padding:0 20px 22px;color:var(--cream);border-radius:0 0 26px 26px;overflow:hidden;}
+  .banner::before{content:"";position:absolute;inset:0;background:radial-gradient(150% 90% at 18% 0%,rgba(255,255,255,.06),transparent 60%);pointer-events:none;}
+  .banner .statusbar{color:var(--cream);position:relative;z-index:2;}
+  .b-top{display:flex;justify-content:space-between;align-items:flex-start;margin-top:4px;position:relative;z-index:2;}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-mut);}
+  .crew-name{font-family:var(--fd);font-size:31px;font-weight:800;letter-spacing:-0.02em;line-height:1.04;margin-top:6px;text-wrap:balance;}
+  .b-ic{width:40px;height:40px;border-radius:50%;background:rgba(244,238,223,.14);border:none;display:flex;align-items:center;justify-content:center;color:var(--cream);cursor:pointer;font-size:20px;}
+  .b-ic:focus-visible{outline:2px solid var(--cream);outline-offset:2px;}
+
+  .crew-row{display:flex;gap:14px;margin-top:20px;position:relative;z-index:2;}
+  .member{display:flex;flex-direction:column;align-items:center;gap:7px;width:58px;}
+  .av{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:19px;font-weight:700;color:var(--cream);position:relative;box-shadow:0 0 0 2px rgba(244,238,223,.85);}
+  .av1{background:linear-gradient(155deg,#3B6B4B,#274E37);}
+  .av2{background:linear-gradient(155deg,#7C8252,#565B34);}
+  .av3{background:linear-gradient(155deg,#B07A52,#875836);}
+  .av4{background:linear-gradient(155deg,#5E8076,#42605A);}
+  .member .nm{font-size:12px;font-weight:700;color:var(--cream);}
+  .member .rl{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--cream-mut);}
+  .crown{position:absolute;top:-4px;right:-4px;width:19px;height:19px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(20,30,20,.3);}
+  .crown i{font-size:11px;color:#3a2c08;}
+
+  /* Primary CTA — cream block on forest */
+  .cta{display:flex;align-items:center;gap:13px;width:100%;margin-top:22px;background:var(--card);border:none;border-radius:var(--r-card);padding:14px 15px;cursor:pointer;box-shadow:var(--pop);text-align:left;position:relative;z-index:2;}
+  .cta:focus-visible{outline:3px solid var(--cream);outline-offset:3px;}
+  .cta:active{transform:translateY(1px);}
+  .cta .spark{width:46px;height:46px;border-radius:13px;background:var(--forest);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .cta .spark i{font-size:24px;color:var(--gold);}
+  .cta .ct{flex:1 1 auto;min-width:0;}
+  .cta .l1{font-family:var(--fd);font-size:18px;font-weight:700;letter-spacing:-0.01em;color:var(--ink);}
+  .cta .l2{font-size:12.5px;font-weight:500;color:var(--ink-3);margin-top:1px;}
+  .cta .arr{color:var(--forest);flex:0 0 auto;display:flex;font-size:22px;}
+
+  /* ===== Scroll body ===== */
+  .body{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:22px 20px 14px;}
+  .body::-webkit-scrollbar{display:none;}
+  .sec{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;}
+  .sec h2{font-family:var(--fd);font-size:18px;font-weight:700;letter-spacing:-0.01em;color:var(--ink);}
+  .sec a{font-size:13px;font-weight:700;color:var(--olive);text-decoration:none;cursor:pointer;display:flex;align-items:center;gap:2px;}
+  .sec a i{font-size:16px;}
+  .sec a:focus-visible{outline:2px solid var(--olive);outline-offset:2px;border-radius:6px;}
+
+  /* Quest cards — KEPT from v3: photo, title, date, rating, avatar stack, again */
+  .qcard{background:var(--card);border-radius:var(--r-card);box-shadow:var(--shadow);overflow:hidden;margin-bottom:14px;cursor:pointer;border:1px solid var(--line);}
+  .qcard:focus-visible{outline:2px solid var(--forest);outline-offset:2px;}
+  .qcard:active{transform:translateY(1px);}
+  .qphoto{height:120px;position:relative;display:flex;align-items:flex-end;padding:11px;}
+  .qphoto .ic-big{position:absolute;top:11px;left:12px;font-size:24px;color:rgba(244,238,223,.92);}
+  .ph1{background:linear-gradient(140deg,#2F5740,#1C3A2A);}
+  .ph2{background:linear-gradient(140deg,#6E754A,#474C2D);}
+  .ph3{background:linear-gradient(140deg,#9A6B47,#6B4830);}
+  .qphoto::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(18,24,16,.32),transparent 56%);}
+  .count{position:relative;z-index:2;display:inline-flex;align-items:center;gap:4px;background:rgba(18,28,18,.46);color:var(--cream);border-radius:var(--r-pill);padding:4px 9px;font-size:11px;font-weight:700;}
+  .count i{font-size:13px;}
+  .qbody{padding:12px 14px 13px;}
+  .qtop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .qn{font-family:var(--fd);font-size:16px;font-weight:700;letter-spacing:-0.01em;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .qd{font-size:12.5px;font-weight:500;color:var(--ink-3);margin-top:3px;font-variant-numeric:tabular-nums;}
+  .stars{display:flex;gap:1px;flex:0 0 auto;padding-top:2px;}
+  .stars i{font-size:16px;color:var(--forest);}
+  .stars i.off{color:#D8CDB4;}
+  .qfoot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
+  .stack{display:flex;align-items:center;}
+  .stack .mini{width:25px;height:25px;border-radius:50%;border:2px solid var(--card);margin-left:-8px;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:10px;font-weight:700;color:var(--cream);}
+  .stack .mini:first-child{margin-left:0;}
+  .stack .more{margin-left:8px;font-size:12px;font-weight:500;color:var(--ink-3);}
+  .qfoot .again{display:flex;align-items:center;gap:4px;font-size:12.5px;font-weight:700;color:var(--olive);}
+  .qfoot .again i{font-size:16px;}
+
+  /* Bucket chips */
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:4px;}
+  .chip{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:var(--r-pill);padding:9px 14px 9px 11px;font-size:13.5px;font-weight:600;cursor:pointer;}
+  .chip i{font-size:17px;color:var(--olive);}
+  .chip:focus-visible{outline:2px solid var(--forest);outline-offset:2px;}
+  .chip.add{background:transparent;border-style:dashed;border-color:#D2C7AC;color:var(--ink-2);}
+  .chip.add i{color:var(--ink-2);}
+
+  /* ===== Tab bar ===== */
+  .tabs{position:relative;flex:0 0 auto;height:84px;background:rgba(252,248,239,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-around;padding:10px 12px 0;}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:700;letter-spacing:.02em;color:#A39A82;width:56px;padding-top:5px;background:none;border:none;cursor:pointer;}
+  .tab i{font-size:24px;}
+  .tab.on{color:var(--forest);}
+  .tab:focus-visible{outline:2px solid var(--forest);outline-offset:2px;border-radius:8px;}
+  .tab.mid{width:64px;}
+  .fab{width:56px;height:56px;border-radius:50%;background:var(--forest);display:flex;align-items:center;justify-content:center;margin-top:-24px;box-shadow:var(--pop),0 0 0 5px var(--bg);}
+  .fab i{font-size:26px;color:var(--cream);}
+  .tab.mid span{color:var(--forest);margin-top:2px;}
+  .hi{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:128px;height:5px;border-radius:3px;background:var(--ink);opacity:.2;}
+
+  /* ===== Empty state — sized to fit, never clips ===== */
+  .empty{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px 28px 14px;overflow:hidden;}
+  .circle{width:118px;height:118px;border-radius:50%;background:var(--forest);display:flex;align-items:center;justify-content:center;margin-bottom:22px;box-shadow:var(--pop);position:relative;flex:0 0 auto;}
+  .circle .big{font-size:54px;color:var(--cream);}
+  .circle .badge{position:absolute;width:42px;height:42px;border-radius:50%;background:var(--gold);bottom:-4px;right:-2px;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 12px -4px rgba(35,35,28,.35);border:3px solid var(--bg);}
+  .circle .badge i{font-size:22px;color:#3a2c08;}
+  .empty h2{font-family:var(--fd);font-size:26px;font-weight:800;letter-spacing:-0.02em;line-height:1.12;color:var(--ink);max-width:280px;text-wrap:balance;margin-bottom:11px;}
+  .empty p{font-size:15px;font-weight:500;line-height:1.5;color:var(--ink-2);max-width:268px;text-wrap:pretty;margin-bottom:26px;}
+  .acts{width:100%;display:flex;flex-direction:column;gap:11px;flex:0 0 auto;}
+  .btn-1{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--forest);color:var(--cream);border:none;border-radius:var(--r-pill);padding:16px;font-family:var(--fd);font-size:16.5px;font-weight:700;cursor:pointer;box-shadow:var(--pop);}
+  .btn-1:active{background:var(--forest-press);}
+  .btn-1 i{font-size:20px;}
+  .btn-2{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:transparent;color:var(--forest);border:1.5px solid var(--forest);border-radius:var(--r-pill);padding:14.5px;font-family:var(--fd);font-size:16.5px;font-weight:700;cursor:pointer;}
+  .btn-2 i{font-size:19px;}
+  .btn-1:focus-visible,.btn-2:focus-visible{outline:3px solid var(--forest);outline-offset:3px;}
+  .invite{margin-top:18px;font-size:13px;font-weight:500;color:var(--ink-3);flex:0 0 auto;}
+  .invite b{color:var(--olive);font-weight:700;}
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>Aventure — Crew Home v4</h1>
+    <p>390 × 844 · warm cream + deep forest green · Bricolage Grotesque + Hanken Grotesk · Phosphor icons</p>
+  </div>
+
+  <div class="stage">
+
+    <!-- ===================== A · EMPTY ===================== -->
+    <div class="frame-wrap">
+      <div class="frame-label">A · <b>Empty</b> — no crew yet</div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="sheet">
+          <div class="banner" style="padding-bottom:24px;">
+            <div class="statusbar">
+              <span>9:41</span>
+              <span class="ic"><i class="ph ph-cell-signal-full"></i><i class="ph ph-wifi-high"></i><i class="ph ph-battery-full"></i></span>
+            </div>
+            <div class="b-top">
+              <div>
+                <div class="eyebrow">Welcome to Aventure</div>
+                <div class="crew-name">Hey, Maya</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty">
+            <div class="circle">
+              <i class="ph-fill ph-users-three big"></i>
+              <span class="badge"><i class="ph-fill ph-sparkle"></i></span>
+            </div>
+            <h2>Your crew is where it all kicks off</h2>
+            <p>Round up your people, or hop into one that fits. Your next night out starts here.</p>
+            <div class="acts">
+              <button class="btn-1"><i class="ph ph-plus"></i>Create a crew</button>
+              <button class="btn-2"><i class="ph ph-sign-in"></i>Join a crew</button>
+            </div>
+            <div class="invite">Got an invite code? <b>Tap Join a crew</b></div>
+          </div>
+
+          <nav class="tabs" aria-label="Primary">
+            <button class="tab on" aria-current="page"><i class="ph-fill ph-house"></i><span>Home</span></button>
+            <button class="tab"><i class="ph ph-compass"></i><span>Explore</span></button>
+            <button class="tab mid"><span class="fab"><i class="ph-fill ph-sparkle"></i></span><span>Quest</span></button>
+            <button class="tab"><i class="ph ph-users-three"></i><span>Crew</span></button>
+            <button class="tab"><i class="ph ph-user"></i><span>Profile</span></button>
+            <div class="hi"></div>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== B · ACTIVE ===================== -->
+    <div class="frame-wrap">
+      <div class="frame-label">B · <b>Active</b> — crew of 4</div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="sheet">
+          <div class="banner">
+            <div class="statusbar">
+              <span>9:41</span>
+              <span class="ic"><i class="ph ph-cell-signal-full"></i><i class="ph ph-wifi-high"></i><i class="ph ph-battery-full"></i></span>
+            </div>
+            <div class="b-top">
+              <div>
+                <div class="eyebrow">Your crew · 4 members</div>
+                <div class="crew-name">The Night Owls</div>
+              </div>
+              <button class="b-ic" aria-label="Crew settings"><i class="ph ph-gear-six"></i></button>
+            </div>
+
+            <div class="crew-row">
+              <div class="member">
+                <div class="av av1">M<span class="crown"><i class="ph-fill ph-crown-simple"></i></span></div>
+                <span class="nm">Maya</span><span class="rl">Leader</span>
+              </div>
+              <div class="member"><div class="av av2">J</div><span class="nm">Jordan</span><span class="rl">Member</span></div>
+              <div class="member"><div class="av av3">P</div><span class="nm">Priya</span><span class="rl">Member</span></div>
+              <div class="member"><div class="av av4">L</div><span class="nm">Leo</span><span class="rl">Member</span></div>
+            </div>
+
+            <button class="cta">
+              <span class="spark"><i class="ph-fill ph-sparkle"></i></span>
+              <span class="ct">
+                <span class="l1">Start a quest</span>
+                <span class="l2">Plan tonight in about 90 seconds</span>
+              </span>
+              <span class="arr"><i class="ph ph-arrow-right"></i></span>
+            </button>
+          </div>
+
+          <div class="body">
+            <div class="sec"><h2>Recent quests</h2><a>See all <i class="ph ph-caret-right"></i></a></div>
+
+            <article class="qcard" tabindex="0">
+              <div class="qphoto ph1" role="img" aria-label="Photo from Ramen and Rooftop Bars">
+                <i class="ph-fill ph-bowl-food ic-big"></i>
+                <span class="count"><i class="ph-fill ph-camera"></i>12</span>
+              </div>
+              <div class="qbody">
+                <div class="qtop">
+                  <div style="min-width:0;">
+                    <div class="qn">Ramen &amp; Rooftop Bars</div>
+                    <div class="qd">Sat, 24 May</div>
+                  </div>
+                  <div class="stars" role="img" aria-label="Rated 5 of 5"><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i></div>
+                </div>
+                <div class="qfoot">
+                  <div class="stack">
+                    <span class="mini av1">M</span><span class="mini av2">J</span><span class="mini av3">P</span><span class="mini av4">L</span>
+                    <span class="more">All 4 went</span>
+                  </div>
+                  <span class="again"><i class="ph ph-arrow-counter-clockwise"></i>Again</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="qcard" tabindex="0">
+              <div class="qphoto ph2" role="img" aria-label="Photo from Indie Film and Late Tacos">
+                <i class="ph-fill ph-film-slate ic-big"></i>
+                <span class="count"><i class="ph-fill ph-camera"></i>8</span>
+              </div>
+              <div class="qbody">
+                <div class="qtop">
+                  <div style="min-width:0;">
+                    <div class="qn">Indie Film &amp; Late Tacos</div>
+                    <div class="qd">Fri, 09 May</div>
+                  </div>
+                  <div class="stars" role="img" aria-label="Rated 4 of 5"><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph ph-star off"></i></div>
+                </div>
+                <div class="qfoot">
+                  <div class="stack">
+                    <span class="mini av2">J</span><span class="mini av3">P</span><span class="mini av4">L</span>
+                    <span class="more">3 went</span>
+                  </div>
+                  <span class="again"><i class="ph ph-arrow-counter-clockwise"></i>Again</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="qcard" tabindex="0">
+              <div class="qphoto ph3" role="img" aria-label="Photo from Bowling and Burgers">
+                <i class="ph-fill ph-beer-stein ic-big"></i>
+                <span class="count"><i class="ph-fill ph-camera"></i>15</span>
+              </div>
+              <div class="qbody">
+                <div class="qtop">
+                  <div style="min-width:0;">
+                    <div class="qn">Bowling &amp; Burgers</div>
+                    <div class="qd">Sat, 26 Apr</div>
+                  </div>
+                  <div class="stars" role="img" aria-label="Rated 3 of 5"><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph ph-star off"></i><i class="ph ph-star off"></i></div>
+                </div>
+                <div class="qfoot">
+                  <div class="stack">
+                    <span class="mini av1">M</span><span class="mini av2">J</span><span class="mini av4">L</span>
+                    <span class="more">3 went</span>
+                  </div>
+                  <span class="again"><i class="ph ph-arrow-counter-clockwise"></i>Again</span>
+                </div>
+              </div>
+            </article>
+
+            <div class="sec" style="margin-top:24px;"><h2>Crew bucket list</h2><a>Edit <i class="ph ph-caret-right"></i></a></div>
+            <div class="chips">
+              <span class="chip" tabindex="0"><i class="ph ph-microphone-stage"></i>Karaoke night</span>
+              <span class="chip" tabindex="0"><i class="ph ph-waves"></i>Day trip to the coast</span>
+              <span class="chip" tabindex="0"><i class="ph ph-cooking-pot"></i>Cooking class</span>
+              <button class="chip add"><i class="ph ph-plus"></i>Add idea</button>
+            </div>
+          </div>
+
+          <nav class="tabs" aria-label="Primary">
+            <button class="tab on" aria-current="page"><i class="ph-fill ph-house"></i><span>Home</span></button>
+            <button class="tab"><i class="ph ph-compass"></i><span>Explore</span></button>
+            <button class="tab mid"><span class="fab"><i class="ph-fill ph-sparkle"></i></span><span>Quest</span></button>
+            <button class="tab"><i class="ph ph-users-three"></i><span>Crew</span></button>
+            <button class="tab"><i class="ph ph-user"></i><span>Profile</span></button>
+            <div class="hi"></div>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#FF5436">
+<title>Aventure — Crew Home v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,0&display=block" rel="stylesheet">
+<style>
+  /* =====================================================================
+     AVENTURE — CREW HOME v3
+     Research-led (Refero): Partiful (primary), Strava, SquadEasy, Honk.
+     Color psychology for 16–25: energy/FOMO via a warm electric accent +
+     sunset gradient + faces — NOT calm green. Bright base lets color pop.
+     Type: Plus Jakarta Sans (rounded, "for me"). Icons: Material Symbols.
+     ===================================================================== */
+  :root{
+    --bg:#FBF7F1;          /* warm off-white ground */
+    --surface:#FFFFFF;     /* cards */
+    --ink:#1A1714;         /* primary text / structure */
+    --ink-2:#5C544B;       /* secondary */
+    --ink-3:#6B6359;       /* meta (AA-safe) */
+    --line:#EFE7DA;        /* warm hairline */
+
+    --coral:#FF5436;       /* PRIMARY — energy / FOMO / action */
+    --coral-press:#E8431F;
+    --magenta:#FF2E93;     /* gradient only */
+    --amber:#FF8A3D;       /* gradient only */
+    --sunset:linear-gradient(125deg,#FF8A3D 0%,#FF5436 46%,#FF2E93 100%);
+
+    --r-card:18px;
+    --r-thumb:14px;
+    --r-pill:999px;
+
+    --card-shadow:0 1px 2px rgba(26,23,20,.04), 0 10px 26px -14px rgba(26,23,20,.20);
+    --pop:0 10px 24px -10px rgba(26,23,20,.30);
+    --coral-glow:0 12px 26px -10px rgba(255,84,54,.6);
+
+    --font:"Plus Jakarta Sans",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:rgba(0,0,0,.06);touch-action:manipulation;}
+  body{font-family:var(--font);background:#e7e0d4;color:var(--ink);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:44px 24px 72px;gap:6px;-webkit-font-smoothing:antialiased;}
+  .ms{font-family:"Material Symbols Rounded";font-weight:normal;font-style:normal;line-height:1;display:inline-block;font-variation-settings:'FILL' 1,'wght' 500,'opsz' 24,'GRAD' 0;-webkit-font-smoothing:antialiased;user-select:none;}
+
+  .page-head{text-align:center;margin-bottom:16px;}
+  .page-head h1{font-size:22px;font-weight:800;letter-spacing:-0.02em;color:var(--ink);}
+  .page-head p{font-size:13px;color:#7a7264;margin-top:5px;}
+  .stage{display:flex;gap:52px;flex-wrap:wrap;justify-content:center;align-items:flex-start;}
+  .frame-wrap{display:flex;flex-direction:column;align-items:center;gap:15px;}
+  .frame-label{font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7a7264;}
+  .frame-label b{color:var(--coral);}
+
+  /* Phone shell — exact 390x844, nothing escapes */
+  .phone{width:390px;height:844px;background:var(--bg);border-radius:46px;position:relative;overflow:hidden;box-shadow:0 0 0 9px #14130f,0 30px 64px -16px rgba(0,0,0,.5);}
+  .sheet{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:118px;height:30px;background:#14130f;border-radius:0 0 17px 17px;z-index:40;}
+
+  .statusbar{height:50px;flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 7px;font-size:14px;font-weight:700;letter-spacing:.02em;z-index:20;}
+  .statusbar .ic{display:flex;gap:6px;align-items:center;}
+  .statusbar .ms{font-size:17px;}
+
+  /* ===== Crew banner — sunset gradient FOMO moment ===== */
+  .banner{position:relative;flex:0 0 auto;background:var(--sunset);padding:0 20px 22px;color:#fff;border-radius:0 0 26px 26px;overflow:hidden;}
+  .banner .glow{position:absolute;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.28),transparent 70%);top:-90px;right:-60px;pointer-events:none;}
+  .banner .statusbar{color:#fff;}
+  .b-top{display:flex;justify-content:space-between;align-items:flex-start;margin-top:4px;}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.85);}
+  .crew-name{font-size:30px;font-weight:800;letter-spacing:-0.02em;line-height:1.05;margin-top:6px;text-wrap:balance;text-shadow:0 1px 12px rgba(120,20,10,.18);}
+  .b-ic{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.18);border:none;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;backdrop-filter:blur(4px);}
+  .b-ic .ms{font-size:21px;}
+  .b-ic:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+
+  .crew-row{display:flex;gap:14px;margin-top:20px;}
+  .member{display:flex;flex-direction:column;align-items:center;gap:7px;width:58px;}
+  .av{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;color:#fff;position:relative;box-shadow:0 0 0 2.5px rgba(255,255,255,.9),0 4px 10px rgba(120,20,10,.22);}
+  .av1{background:linear-gradient(150deg,#FF8A5B,#FF5436);}
+  .av2{background:linear-gradient(150deg,#FFC24D,#FF8A3D);}
+  .av3{background:linear-gradient(150deg,#FF6FA5,#FF2E93);}
+  .av4{background:linear-gradient(150deg,#5DC7D6,#2F94A8);}
+  .member .nm{font-size:12px;font-weight:700;color:#fff;letter-spacing:.01em;}
+  .member .rl{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.78);}
+  .crown{position:absolute;top:-4px;right:-4px;width:19px;height:19px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(120,20,10,.3);}
+  .crown .ms{font-size:12px;color:var(--coral);}
+
+  /* Primary CTA — white block popping on the gradient */
+  .cta{display:flex;align-items:center;gap:13px;width:100%;margin-top:22px;background:#fff;border:none;border-radius:var(--r-card);padding:15px 16px;cursor:pointer;box-shadow:var(--pop);text-align:left;}
+  .cta:focus-visible{outline:3px solid #fff;outline-offset:3px;}
+  .cta:active{transform:translateY(1px);}
+  .cta .spark{width:46px;height:46px;border-radius:13px;background:var(--sunset);display:flex;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:var(--coral-glow);}
+  .cta .spark .ms{font-size:26px;color:#fff;}
+  .cta .ct{flex:1 1 auto;min-width:0;}
+  .cta .l1{font-size:18px;font-weight:800;letter-spacing:-0.01em;color:var(--ink);}
+  .cta .l2{font-size:12.5px;font-weight:500;color:var(--ink-3);margin-top:1px;}
+  .cta .arr{color:var(--coral);flex:0 0 auto;display:flex;}
+  .cta .arr .ms{font-size:24px;}
+
+  /* ===== Scroll body ===== */
+  .body{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:22px 20px 14px;}
+  .body::-webkit-scrollbar{display:none;}
+  .sec{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;}
+  .sec h2{font-size:18px;font-weight:800;letter-spacing:-0.01em;color:var(--ink);}
+  .sec a{font-size:13px;font-weight:700;color:var(--coral);text-decoration:none;cursor:pointer;display:flex;align-items:center;gap:1px;}
+  .sec a .ms{font-size:18px;}
+  .sec a:focus-visible{outline:2px solid var(--coral);outline-offset:2px;border-radius:6px;}
+
+  /* Quest cards — photo-led, avatar stack, rating */
+  .qcard{background:var(--surface);border-radius:var(--r-card);box-shadow:var(--card-shadow);overflow:hidden;margin-bottom:14px;cursor:pointer;}
+  .qcard:focus-visible{outline:2px solid var(--coral);outline-offset:2px;}
+  .qcard:active{transform:translateY(1px);}
+  .qphoto{height:124px;position:relative;display:flex;align-items:flex-end;padding:11px;}
+  .qphoto .ic-big{position:absolute;top:12px;left:12px;display:flex;}
+  .qphoto .ic-big .ms{font-size:26px;color:rgba(255,255,255,.92);}
+  .ph1{background:linear-gradient(135deg,#FF8A3D,#FF4E5A);}
+  .ph2{background:linear-gradient(135deg,#FF5C8A,#C03BD6);}
+  .ph3{background:linear-gradient(135deg,#FFB23E,#FF6A3D);}
+  .qphoto::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(20,10,8,.34),transparent 55%);}
+  .count{position:relative;z-index:2;display:inline-flex;align-items:center;gap:4px;background:rgba(20,12,10,.42);color:#fff;border-radius:var(--r-pill);padding:4px 9px;font-size:11px;font-weight:700;backdrop-filter:blur(3px);}
+  .count .ms{font-size:13px;}
+  .qbody{padding:12px 14px 13px;}
+  .qtop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .qn{font-size:16px;font-weight:700;letter-spacing:-0.01em;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .qd{font-size:12.5px;font-weight:500;color:var(--ink-3);margin-top:3px;font-variant-numeric:tabular-nums;}
+  .stars{display:flex;gap:1px;flex:0 0 auto;padding-top:1px;}
+  .stars .ms{font-size:17px;color:var(--coral);}
+  .stars .off{color:#E7DECF;}
+  .qfoot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
+  .stack{display:flex;align-items:center;}
+  .stack .mini{width:26px;height:26px;border-radius:50%;border:2px solid #fff;margin-left:-8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;}
+  .stack .mini:first-child{margin-left:0;}
+  .stack .more{margin-left:7px;font-size:12px;font-weight:600;color:var(--ink-3);}
+  .qfoot .again{display:flex;align-items:center;gap:4px;font-size:12.5px;font-weight:700;color:var(--coral);}
+  .qfoot .again .ms{font-size:17px;}
+
+  /* Bucket list chips */
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:6px;}
+  .chip{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--line);color:var(--ink);border-radius:var(--r-pill);padding:9px 14px 9px 11px;font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(26,23,20,.03);}
+  .chip .ms{font-size:18px;color:var(--coral);}
+  .chip:focus-visible{outline:2px solid var(--coral);outline-offset:2px;}
+  .chip.add{background:transparent;border-style:dashed;border-color:#D9CFBE;color:var(--ink-2);}
+  .chip.add .ms{color:var(--ink-2);}
+
+  /* ===== Tab bar ===== */
+  .tabs{position:relative;flex:0 0 auto;height:84px;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-around;padding:10px 12px 0;}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:700;letter-spacing:.02em;color:#A99F8E;width:56px;padding-top:4px;background:none;border:none;cursor:pointer;}
+  .tab .ms{font-size:25px;font-variation-settings:'FILL' 0,'wght' 500,'opsz' 24;}
+  .tab.on{color:var(--coral);}
+  .tab.on .ms{font-variation-settings:'FILL' 1,'wght' 600,'opsz' 24;}
+  .tab:focus-visible{outline:2px solid var(--coral);outline-offset:2px;border-radius:8px;}
+  .tab.mid{width:64px;}
+  .fab{width:58px;height:58px;border-radius:50%;background:var(--sunset);display:flex;align-items:center;justify-content:center;margin-top:-26px;box-shadow:var(--coral-glow),0 0 0 5px var(--bg);}
+  .fab .ms{font-size:28px;color:#fff;font-variation-settings:'FILL' 1,'wght' 600,'opsz' 28;}
+  .tab.mid span{color:var(--coral);margin-top:2px;}
+  .hi{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:128px;height:5px;border-radius:3px;background:var(--ink);opacity:.2;}
+
+  /* ===== Empty state ===== */
+  .empty{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;text-align:center;padding:30px 26px 0;overflow-y:auto;}
+  .empty::-webkit-scrollbar{display:none;}
+  .blob{width:150px;height:150px;border-radius:50%;background:var(--sunset);display:flex;align-items:center;justify-content:center;margin-bottom:26px;box-shadow:var(--coral-glow);position:relative;}
+  .blob .ms{font-size:66px;color:#fff;}
+  .blob .b2{position:absolute;width:46px;height:46px;border-radius:50%;background:#fff;bottom:-6px;right:-2px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px -4px rgba(26,23,20,.3);}
+  .blob .b2 .ms{font-size:26px;color:var(--coral);}
+  .empty h2{font-size:27px;font-weight:800;letter-spacing:-0.02em;line-height:1.12;color:var(--ink);max-width:290px;text-wrap:balance;margin-bottom:12px;}
+  .empty p{font-size:15px;font-weight:500;line-height:1.5;color:var(--ink-2);max-width:280px;text-wrap:pretty;margin-bottom:28px;}
+  .acts{width:100%;display:flex;flex-direction:column;gap:12px;}
+  .btn-1{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--coral);color:#fff;border:none;border-radius:var(--r-pill);padding:17px;font-size:16.5px;font-weight:800;letter-spacing:-0.005em;cursor:pointer;box-shadow:var(--coral-glow);}
+  .btn-1:active{background:var(--coral-press);}
+  .btn-1 .ms{font-size:21px;}
+  .btn-2{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:transparent;color:var(--ink);border:1.5px solid var(--ink);border-radius:var(--r-pill);padding:15.5px;font-size:16.5px;font-weight:800;cursor:pointer;}
+  .btn-2 .ms{font-size:20px;}
+  .btn-1:focus-visible,.btn-2:focus-visible{outline:3px solid var(--coral);outline-offset:3px;}
+  .invite{margin-top:20px;font-size:13px;font-weight:500;color:var(--ink-3);}
+  .invite b{color:var(--coral);font-weight:700;}
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>Aventure — Crew Home v3</h1>
+    <p>390 × 844 · sunset coral energy · Plus Jakarta Sans · Material Symbols · research: Partiful / Strava / SquadEasy</p>
+  </div>
+
+  <div class="stage">
+
+    <!-- ===================== A · EMPTY ===================== -->
+    <div class="frame-wrap">
+      <div class="frame-label">A · <b>Empty</b> — no crew yet</div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="sheet">
+          <div class="banner" style="padding-bottom:26px;">
+            <div class="glow"></div>
+            <div class="statusbar">
+              <span>9:41</span>
+              <span class="ic"><span class="ms">signal_cellular_alt</span><span class="ms">wifi</span><span class="ms">battery_full</span></span>
+            </div>
+            <div class="b-top">
+              <div>
+                <div class="eyebrow">Welcome to Aventure</div>
+                <div class="crew-name">Hey, Maya</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty">
+            <div class="blob">
+              <span class="ms">groups</span>
+              <span class="b2"><span class="ms">bolt</span></span>
+            </div>
+            <h2>Your crew is where it all kicks off</h2>
+            <p>Round up your people or drop into one that fits. Aventure plans the night — you just show up.</p>
+            <div class="acts">
+              <button class="btn-1"><span class="ms">add</span>Create a crew</button>
+              <button class="btn-2"><span class="ms">login</span>Join a crew</button>
+            </div>
+            <div class="invite">Got an invite code? <b>Tap Join a crew</b></div>
+          </div>
+
+          <nav class="tabs" aria-label="Primary">
+            <button class="tab on" aria-current="page"><span class="ms">home</span><span>Home</span></button>
+            <button class="tab"><span class="ms">explore</span><span>Explore</span></button>
+            <button class="tab mid"><span class="fab"><span class="ms">auto_awesome</span></span><span>Quest</span></button>
+            <button class="tab"><span class="ms">groups</span><span>Crew</span></button>
+            <button class="tab"><span class="ms">person</span><span>Profile</span></button>
+            <div class="hi"></div>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== B · ACTIVE ===================== -->
+    <div class="frame-wrap">
+      <div class="frame-label">B · <b>Active</b> — crew of 4</div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="sheet">
+          <div class="banner">
+            <div class="glow"></div>
+            <div class="statusbar">
+              <span>9:41</span>
+              <span class="ic"><span class="ms">signal_cellular_alt</span><span class="ms">wifi</span><span class="ms">battery_full</span></span>
+            </div>
+            <div class="b-top">
+              <div>
+                <div class="eyebrow">Your crew · 4 members</div>
+                <div class="crew-name">The Night Owls</div>
+              </div>
+              <button class="b-ic" aria-label="Crew settings"><span class="ms">settings</span></button>
+            </div>
+
+            <div class="crew-row">
+              <div class="member">
+                <div class="av av1">M<span class="crown"><span class="ms">workspace_premium</span></span></div>
+                <span class="nm">Maya</span><span class="rl">Leader</span>
+              </div>
+              <div class="member"><div class="av av2">J</div><span class="nm">Jordan</span><span class="rl">Member</span></div>
+              <div class="member"><div class="av av3">P</div><span class="nm">Priya</span><span class="rl">Member</span></div>
+              <div class="member"><div class="av av4">L</div><span class="nm">Leo</span><span class="rl">Member</span></div>
+            </div>
+
+            <button class="cta">
+              <span class="spark"><span class="ms">auto_awesome</span></span>
+              <span class="ct">
+                <span class="l1">Start a quest</span>
+                <span class="l2">Plan tonight in about 90 seconds</span>
+              </span>
+              <span class="arr"><span class="ms">arrow_forward</span></span>
+            </button>
+          </div>
+
+          <div class="body">
+            <div class="sec"><h2>Recent quests</h2><a>See all <span class="ms">chevron_right</span></a></div>
+
+            <article class="qcard" tabindex="0">
+              <div class="qphoto ph1" role="img" aria-label="Photo from Ramen &amp; Rooftop Bars">
+                <span class="ic-big"><span class="ms">ramen_dining</span></span>
+                <span class="count"><span class="ms">photo_camera</span>12</span>
+              </div>
+              <div class="qbody">
+                <div class="qtop">
+                  <div style="min-width:0;">
+                    <div class="qn">Ramen &amp; Rooftop Bars</div>
+                    <div class="qd">Sat, 24 May</div>
+                  </div>
+                  <div class="stars" role="img" aria-label="Rated 5 of 5"><span class="ms">star</span><span class="ms">star</span><span class="ms">star</span><span class="ms">star</span><span class="ms">star</span></div>
+                </div>
+                <div class="qfoot">
+                  <div class="stack">
+                    <span class="mini av1">M</span><span class="mini av2">J</span><span class="mini av3">P</span><span class="mini av4">L</span>
+                    <span class="more">All 4 went</span>
+                  </div>
+                  <span class="again"><span class="ms">replay</span>Again</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="qcard" tabindex="0">
+              <div class="qphoto ph2" role="img" aria-label="Photo from Indie Film &amp; Late Tacos">
+                <span class="ic-big"><span class="ms">theaters</span></span>
+                <span class="count"><span class="ms">photo_camera</span>8</span>
+              </div>
+              <div class="qbody">
+                <div class="qtop">
+                  <div style="min-width:0;">
+                    <div class="qn">Indie Film &amp; Late Tacos</div>
+                    <div class="qd">Fri, 09 May</div>
+                  </div>
+                  <div class="stars" role="img" aria-label="Rated 4 of 5"><span class="ms">star</span><span class="ms">star</span><span class="ms">star</span><span class="ms">star</span><span class="ms off">star</span></div>
+                </div>
+                <div class="qfoot">
+                  <div class="stack">
+                    <span class="mini av2">J</span><span class="mini av3">P</span><span class="mini av4">L</span>
+                    <span class="more">3 went</span>
+                  </div>
+                  <span class="again"><span class="ms">replay</span>Again</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="qcard" tabindex="0">
+              <div class="qphoto ph3" role="img" aria-label="Photo from Bowling &amp; Burgers">
+                <span class="ic-big"><span class="ms">sports_bar</span></span>
+                <span class="count"><span class="ms">photo_camera</span>15</span>
+              </div>
+              <div class="qbody">
+                <div class="qtop">
+                  <div style="min-width:0;">
+                    <div class="qn">Bowling &amp; Burgers</div>
+                    <div class="qd">Sat, 26 Apr</div>
+                  </div>
+                  <div class="stars" role="img" aria-label="Rated 3 of 5"><span class="ms">star</span><span class="ms">star</span><span class="ms">star</span><span class="ms off">star</span><span class="ms off">star</span></div>
+                </div>
+                <div class="qfoot">
+                  <div class="stack">
+                    <span class="mini av1">M</span><span class="mini av2">J</span><span class="mini av4">L</span>
+                    <span class="more">3 went</span>
+                  </div>
+                  <span class="again"><span class="ms">replay</span>Again</span>
+                </div>
+              </div>
+            </article>
+
+            <div class="sec" style="margin-top:24px;"><h2>Crew bucket list</h2><a>Edit <span class="ms">chevron_right</span></a></div>
+            <div class="chips">
+              <span class="chip" tabindex="0"><span class="ms">mic</span>Karaoke night</span>
+              <span class="chip" tabindex="0"><span class="ms">surfing</span>Day trip to the coast</span>
+              <span class="chip" tabindex="0"><span class="ms">skillet</span>Cooking class</span>
+              <button class="chip add"><span class="ms">add</span>Add idea</button>
+            </div>
+          </div>
+
+          <nav class="tabs" aria-label="Primary">
+            <button class="tab on" aria-current="page"><span class="ms">home</span><span>Home</span></button>
+            <button class="tab"><span class="ms">explore</span><span>Explore</span></button>
+            <button class="tab mid"><span class="fab"><span class="ms">auto_awesome</span></span><span>Quest</span></button>
+            <button class="tab"><span class="ms">groups</span><span>Crew</span></button>
+            <button class="tab"><span class="ms">person</span><span>Profile</span></button>
+            <div class="hi"></div>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

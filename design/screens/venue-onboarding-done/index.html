@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventure for Venues: You're all set (Step 4 of 4)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+  /* ===== Golden Hour tokens (venue app) — mirrors design/tokens/tokens.css,
+          with --secondary overridden to the venue-app canonical #2D6A4F ===== */
+  :root{
+    --bg:#FBF6EE;
+    --card:#FFFFFF;
+    --primary:#E2693E;
+    --secondary:#2D6A4F;   /* venue-app canonical (consumer app uses #138A6B) */
+    --success:#3D8060;
+    --ink:#2A2521;
+    --muted:#7A6E68;
+    --divider:#ECE4D8;
+    --danger:#A2462A;      /* error text — warm, AA on card */
+    --font-display:"Fraunces",Georgia,serif;
+    --font-body:"Satoshi","Inter",Arial,sans-serif;
+    --radius-button:14px;
+    --radius-card:16px;
+    --radius-input:12px;
+    --radius-pill:100px;
+    --shadow-card:0 1px 2px rgba(42,37,33,0.05), 0 8px 24px rgba(42,37,33,0.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  /* Prototype is view-only: non-interactive text shows no I-beam and can't be selected. */
+  html{-webkit-tap-highlight-color:transparent;}
+  body{cursor:default;}
+  *{-webkit-user-select:none;user-select:none;}
+  input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;cursor:auto;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:16px;
+    line-height:1.4;
+    min-height:100vh;
+  }
+
+  .shell{
+    max-width:1040px;
+    margin:0 auto;
+    padding:40px 28px 64px;
+    display:grid;
+    grid-template-columns:320px 1fr;
+    gap:48px;
+    align-items:start;
+  }
+
+  /* ---- Left context panel ---- */
+  .context{position:sticky;top:40px;}
+  .wordmark{display:flex;align-items:baseline;gap:8px;margin-bottom:32px;}
+  .wordmark .name{font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--ink);}
+  .wordmark .tag{
+    font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;
+    color:var(--secondary);background:rgba(45,106,79,0.10);
+    padding:3px 8px;border-radius:var(--radius-pill);
+  }
+  .context h1{
+    font-family:var(--font-display);font-weight:600;font-size:28px;
+    line-height:1.2;color:var(--ink);margin-bottom:10px;
+  }
+  .context p.lede{color:var(--muted);font-size:15px;max-width:30ch;}
+
+  /* ---- Vertical stepper ---- */
+  .stepper{list-style:none;margin:28px 0 0;display:flex;flex-direction:column;gap:2px;}
+  .stepper li{display:flex;align-items:center;gap:12px;padding:8px 0;color:var(--muted);font-size:14px;font-weight:500;}
+  .stepper .dot{
+    width:24px;height:24px;border-radius:var(--radius-pill);
+    border:1.5px solid var(--divider);display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:700;color:var(--muted);background:var(--card);flex:0 0 auto;
+  }
+  .stepper li.active{color:var(--ink);}
+  .stepper li.active .dot{background:var(--secondary);border-color:var(--secondary);color:#fff;}
+  /* Completed prior steps — jade check dots */
+  .stepper li.done{color:var(--ink);}
+  .stepper li.done .dot{background:var(--secondary);border-color:var(--secondary);color:#fff;}
+
+  /* ---- Confirmation card (same shell as the form-card on V1) ---- */
+  .form-card{
+    background:var(--card);
+    border:0.5px solid var(--divider);
+    border-radius:var(--radius-card);
+    box-shadow:var(--shadow-card);
+    padding:32px;
+    max-width:560px;
+  }
+
+  /* Success moment — jade check in a soft circle */
+  .success-mark{
+    width:64px;height:64px;border-radius:var(--radius-pill);
+    background:rgba(61,128,96,0.12);
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:22px;
+  }
+  .success-mark svg{color:var(--success);}
+
+  .form-card h2{font-family:var(--font-display);font-weight:600;font-size:24px;margin-bottom:8px;}
+  .form-card .sub{color:var(--muted);font-size:15px;margin-bottom:24px;max-width:46ch;}
+
+  /* The required headline line — prominent, warm */
+  .doorbell-line{
+    font-family:var(--font-display);font-weight:500;font-size:19px;line-height:1.4;
+    color:var(--ink);
+    padding:18px 20px;margin-bottom:24px;
+    background:var(--bg);border:0.5px solid var(--divider);border-radius:var(--radius-input);
+    border-left:3px solid var(--secondary);
+  }
+
+  /* Restrained recap checklist */
+  .recap{list-style:none;margin:0 0 26px;display:flex;flex-direction:column;gap:12px;}
+  .recap li{display:flex;align-items:flex-start;gap:11px;font-size:15px;color:var(--ink);}
+  .recap .check{
+    width:22px;height:22px;border-radius:var(--radius-pill);
+    background:var(--success);color:#fff;
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:1px;
+  }
+  .recap .label strong{font-weight:700;}
+  .recap .label .detail{display:block;color:var(--muted);font-size:13px;margin-top:1px;}
+
+  /* Founding-venue reassurance */
+  .reassure{
+    font-size:14px;color:var(--ink);display:flex;gap:9px;align-items:flex-start;
+    margin-bottom:26px;padding-top:18px;border-top:0.5px solid var(--divider);
+  }
+  .reassure svg{color:var(--success);flex:0 0 auto;margin-top:2px;}
+
+  /* Primary CTA — ink on terracotta, never white */
+  .btn-primary{
+    display:flex;align-items:center;justify-content:center;
+    width:100%;height:52px;margin-top:4px;
+    background:var(--primary);color:var(--ink);  /* never white on terracotta */
+    font-family:var(--font-body);font-weight:500;font-size:15px;
+    border:none;border-radius:var(--radius-button);cursor:pointer;
+    text-decoration:none;
+    transition:filter .15s;
+  }
+  .btn-primary:hover{filter:brightness(0.97);}
+  .btn-primary:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(42,37,33,0.45);}
+
+  /* Non-interactive text should not show the text-edit I-beam */
+  h1,h2,.wordmark,.tag,.stepper,.lede,.sub,.doorbell-line,.recap,.reassure{cursor:default;user-select:none;}
+
+  /* ---- Responsive ---- */
+  @media (max-width:760px){
+    .shell{grid-template-columns:1fr;gap:28px;padding:28px 20px 48px;}
+    .context{position:static;}
+    .context p.lede{max-width:none;}
+    .stepper{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin-top:18px;}
+    .stepper li{padding:0;}
+    .form-card{padding:24px 20px;max-width:none;}
+  }
+
+  /* Respect reduced-motion preference: drop all transitions */
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+  <main class="shell">
+    <aside class="context">
+      <div class="wordmark">
+        <span class="name">Aventure</span>
+        <span class="tag">for venues</span>
+      </div>
+      <h1>You're all set</h1>
+      <p class="lede">Your venue is live and ready for its first crew. From here, bookings come to you.</p>
+      <ol class="stepper" aria-label="Onboarding progress">
+        <li class="done">
+          <span class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>Basics
+        </li>
+        <li class="done">
+          <span class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>Offerings
+        </li>
+        <li class="done">
+          <span class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>Availability
+        </li>
+        <li class="active"><span class="dot">4</span>Done</li>
+      </ol>
+    </aside>
+
+    <section class="form-card">
+      <div class="success-mark" aria-hidden="true">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+
+      <h2>Your venue is ready</h2>
+      <p class="sub">Nothing else to do today. Here's how a booking will reach you.</p>
+
+      <p class="doorbell-line">When a crew wants to come, we'll text you. Tap to accept. That's it.</p>
+
+      <ul class="recap" aria-label="What's set up">
+        <li>
+          <span class="check" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="label"><strong>Account and basics</strong><span class="detail">Your venue is on the map.</span></span>
+        </li>
+        <li>
+          <span class="check" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="label"><strong>Offerings and prices</strong><span class="detail">Crews see what you do and what it costs.</span></span>
+        </li>
+        <li>
+          <span class="check" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="label"><strong>Availability</strong><span class="detail">We only send bookings for times you're open.</span></span>
+        </li>
+      </ul>
+
+      <p class="reassure">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        Zero fees until we're actually sending you paying groups. As a founding venue, you keep every dollar of your first bookings.
+      </p>
+
+      <a class="btn-primary" href="../venue-dashboard/index.html">Go to your dashboard</a>
+    </section>
+  </main>
+</body>
+</html>

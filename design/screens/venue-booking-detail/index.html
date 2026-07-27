@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventure for Venues: Booking detail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+  /* ===== Golden Hour tokens (venue app), secondary overridden to #2D6A4F ===== */
+  :root{
+    --bg:#FBF6EE; --card:#FFFFFF; --primary:#E2693E; --secondary:#2D6A4F;
+    --success:#3D8060; --ink:#2A2521; --muted:#7A6E68; --divider:#ECE4D8; --danger:#A2462A;
+    --font-display:"Fraunces",Georgia,serif; --font-body:"Satoshi","Inter",Arial,sans-serif;
+    --radius-button:14px; --radius-card:16px; --radius-input:12px; --radius-pill:100px;
+    --shadow-card:0 1px 2px rgba(42,37,33,0.05), 0 8px 24px rgba(42,37,33,0.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  /* Prototype is view-only: non-interactive text shows no I-beam and can't be selected. */
+  html{-webkit-tap-highlight-color:transparent;}
+  body{cursor:default;}
+  *{-webkit-user-select:none;user-select:none;}
+  input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;cursor:auto;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.4;min-height:100vh;}
+  .num{font-variant-numeric:tabular-nums;}
+
+  /* ===== App shell (shared with V5 dashboard & V6 calendar) ===== */
+  .app{display:flex;align-items:stretch;min-height:100vh;}
+  .sidebar{
+    width:236px;flex:0 0 236px;background:var(--bg);border-right:0.5px solid var(--divider);
+    padding:26px 16px 22px;display:flex;flex-direction:column;gap:26px;position:sticky;top:0;height:100vh;
+  }
+  .wordmark{display:flex;align-items:baseline;gap:8px;padding:0 8px;}
+  .wordmark .name{font-family:var(--font-display);font-weight:700;font-size:21px;color:var(--ink);}
+  .wordmark .tag{font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--secondary);background:rgba(45,106,79,0.10);padding:3px 7px;border-radius:var(--radius-pill);}
+  .nav{display:flex;flex-direction:column;gap:22px;flex:1 1 auto;}
+  .nav-group{display:flex;flex-direction:column;gap:2px;}
+  .nav-group .gl{font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);padding:0 8px 6px;}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:9px 10px;min-height:44px;border-radius:10px;color:var(--muted);font-size:14px;font-weight:500;text-decoration:none;transition:background .14s,color .14s;}
+  .nav-item svg{width:18px;height:18px;flex:0 0 auto;stroke-width:1.6;}
+  .nav-item:hover{background:var(--card);color:var(--ink);}
+  .nav-item.active{background:rgba(45,106,79,0.10);color:var(--secondary);font-weight:700;}
+  .nav-item:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(45,106,79,0.35);}
+  .nav-item .count{margin-left:auto;font-size:11px;font-weight:700;color:#fff;background:var(--primary);min-width:18px;height:18px;border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;padding:0 5px;}
+  .nav-foot{display:flex;flex-direction:column;gap:10px;}
+  .venue-chip{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;border:0.5px solid var(--divider);background:var(--card);}
+  .venue-chip .ava{width:34px;height:34px;border-radius:var(--radius-pill);flex:0 0 auto;background:var(--secondary);color:#fff;font-family:var(--font-display);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .venue-chip .vn{font-size:13px;font-weight:700;color:var(--ink);line-height:1.2;}
+  .venue-chip .vs{font-size:11px;color:var(--muted);}
+
+  /* ===== Main column ===== */
+  .main{flex:1 1 auto;min-width:0;padding:26px 34px 56px;max-width:980px;}
+
+  /* Back link */
+  .back{
+    display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 4px;margin-bottom:14px;
+    color:var(--muted);font-size:13.5px;font-weight:600;text-decoration:none;border-radius:8px;
+    transition:color .14s;
+  }
+  .back svg{width:16px;height:16px;stroke-width:2;}
+  .back:hover{color:var(--ink);}
+  .back:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(45,106,79,0.35);}
+
+  /* Topbar */
+  .topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:24px;}
+  .topbar .title{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar .greet{font-family:var(--font-display);font-weight:600;font-size:27px;color:var(--ink);line-height:1.15;}
+  .topbar .sub{color:var(--muted);font-size:14px;margin-top:6px;}
+  .pill{font-size:11px;font-weight:700;letter-spacing:0.03em;padding:4px 11px;border-radius:var(--radius-pill);display:inline-flex;align-items:center;gap:6px;}
+  .pill.confirmed{background:rgba(61,128,96,0.14);color:var(--success);}
+  .pill.confirmed i{width:7px;height:7px;border-radius:50%;background:var(--success);}
+
+  /* Layout: details | roster + action */
+  .layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:20px;align-items:start;}
+  .panel{background:var(--card);border:0.5px solid var(--divider);border-radius:var(--radius-card);box-shadow:var(--shadow-card);overflow:hidden;}
+  .panel-head{padding:18px 20px 14px;border-bottom:0.5px solid var(--divider);}
+  .panel-head .pt{font-family:var(--font-display);font-weight:600;font-size:18px;color:var(--ink);}
+  .panel-head .ps{font-size:12.5px;color:var(--muted);margin-top:2px;}
+
+  /* Details rows */
+  .details{padding:6px 20px 8px;}
+  .drow{display:flex;align-items:flex-start;gap:16px;padding:14px 0;border-top:0.5px solid var(--divider);}
+  .drow:first-child{border-top:none;}
+  .drow .dk{flex:0 0 150px;font-size:12.5px;color:var(--muted);font-weight:500;padding-top:1px;}
+  .drow .dv{flex:1 1 auto;min-width:0;font-size:14.5px;color:var(--ink);font-weight:600;}
+  .drow .dv .note{font-weight:400;color:var(--muted);font-size:13px;margin-top:3px;}
+  .ref{font-family:var(--font-body);font-weight:700;letter-spacing:0.04em;background:var(--bg);border:0.5px solid var(--divider);border-radius:8px;padding:3px 9px;display:inline-block;}
+  .amt-line{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .amt-line .big{font-family:var(--font-body);font-weight:700;font-size:22px;color:var(--ink);}
+  .paid-tag{font-size:11px;font-weight:700;letter-spacing:0.02em;color:var(--success);background:rgba(61,128,96,0.12);border-radius:var(--radius-pill);padding:3px 9px;}
+
+  /* Notes card inner */
+  .notes{display:flex;flex-direction:column;gap:8px;}
+  .notes .n{display:flex;align-items:flex-start;gap:9px;font-size:14px;color:var(--ink);font-weight:400;}
+  .notes .n svg{width:16px;height:16px;flex:0 0 auto;margin-top:2px;color:var(--secondary);stroke-width:1.8;}
+
+  /* Roster */
+  .side{display:flex;flex-direction:column;gap:20px;}
+  .roster{padding:14px 16px 18px;display:flex;flex-direction:column;gap:8px;}
+  .crew{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:12px;background:var(--bg);border:0.5px solid var(--divider);}
+  .crew .ava{width:38px;height:38px;border-radius:var(--radius-pill);flex:0 0 auto;color:#fff;font-family:var(--font-display);font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center;}
+  .crew .nm{font-size:14px;font-weight:600;color:var(--ink);}
+  .crew .role{font-size:11.5px;color:var(--muted);margin-top:1px;}
+  .crew.leader{background:rgba(45,106,79,0.07);border-color:rgba(45,106,79,0.30);}
+  .crew .lead-tag{margin-left:auto;flex:0 0 auto;font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--secondary);background:rgba(45,106,79,0.12);border-radius:var(--radius-pill);padding:3px 9px;}
+
+  /* Action panel */
+  .action{padding:18px 18px 20px;}
+  .action .ah{font-family:var(--font-display);font-weight:600;font-size:16px;color:var(--ink);}
+  .action .as{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.5;}
+  .btn-arrive{
+    display:flex;align-items:center;justify-content:center;gap:9px;width:100%;height:48px;margin-top:14px;
+    background:var(--primary);color:var(--ink);font-family:var(--font-body);font-weight:700;font-size:15px;
+    border:none;border-radius:var(--radius-button);cursor:pointer;transition:filter .14s;
+  }
+  .btn-arrive svg{width:18px;height:18px;stroke-width:2.2;}
+  .btn-arrive:hover{filter:brightness(0.97);}
+  .btn-arrive:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(226,105,62,0.45);}
+  .btn-arrive.done{
+    background:rgba(61,128,96,0.12);color:var(--success);cursor:default;font-weight:700;
+  }
+  .btn-arrive.done:hover{filter:none;}
+  .arrive-note{
+    display:none;align-items:flex-start;gap:9px;margin-top:14px;padding:13px 14px;
+    background:rgba(61,128,96,0.10);border:0.5px solid rgba(61,128,96,0.35);border-radius:var(--radius-input);
+    font-size:13px;color:var(--ink);line-height:1.5;
+  }
+  .arrive-note.show{display:flex;}
+  .arrive-note svg{width:17px;height:17px;flex:0 0 auto;margin-top:1px;color:var(--success);stroke-width:2;}
+  .arrive-note b{font-weight:700;}
+
+  /* non-interactive text: no I-beam */
+  .greet,.sub,.pt,.ps,.gl,.wordmark,.tag,.vn,.vs,.dk,.dv,.nm,.role,.ah,.as{cursor:default;user-select:none;}
+
+  /* ===== Responsive (mirrors dashboard/calendar) ===== */
+  @media (max-width:1080px){ .layout{grid-template-columns:1fr;} }
+  @media (max-width:760px){
+    .app{flex-direction:column;}
+    .sidebar{width:100%;flex:0 0 auto;height:auto;position:static;border-right:none;border-bottom:0.5px solid var(--divider);flex-direction:row;align-items:center;gap:18px;overflow-x:auto;padding:14px 16px;}
+    .nav{flex-direction:row;gap:14px;}
+    .nav-group{flex-direction:row;gap:2px;}
+    .nav-group .gl{display:none;}
+    .nav-item span.lbl{display:none;}
+    .nav-item{min-width:44px;justify-content:center;padding:9px;}
+    .nav-foot,.venue-chip .vt{display:none;}
+    .main{padding:20px 18px 40px;}
+    .topbar{flex-direction:column;align-items:flex-start;}
+    .drow{flex-direction:column;gap:4px;}
+    .drow .dk{flex:none;}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+  <div class="app">
+    <!-- ===== Left navigation (Bookings active) ===== -->
+    <aside class="sidebar">
+      <div class="wordmark"><span class="name">Aventure</span><span class="tag">For Venues</span></div>
+      <nav class="nav">
+        <div class="nav-group">
+          <a class="nav-item" href="../venue-dashboard/index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+            <span class="lbl">Dashboard</span>
+          </a>
+          <a class="nav-item" href="../venue-calendar/index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg>
+            <span class="lbl">Calendar</span>
+          </a>
+          <a class="nav-item active" href="../venue-booking-request/index.html" aria-current="page">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 5.5h18M3 12h18M3 18.5h18"/></svg>
+            <span class="lbl">Bookings</span>
+            <span class="count">1</span>
+          </a>
+        </div>
+        <div class="nav-group">
+          <span class="gl">Venue</span>
+          <a class="nav-item" href="../venue-offerings/index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7l2-3h14l2 3M3 7v12.5A1.5 1.5 0 004.5 21h15a1.5 1.5 0 001.5-1.5V7M3 7h18M9 11a3 3 0 006 0"/></svg>
+            <span class="lbl">Offerings</span>
+          </a>
+          <a class="nav-item" href="../venue-availability/index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+            <span class="lbl">Availability</span>
+          </a>
+          <a class="nav-item" href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20a6.5 6.5 0 0113 0"/></svg>
+            <span class="lbl">Venue profile</span>
+          </a>
+        </div>
+        <div class="nav-group">
+          <span class="gl">Finance</span>
+          <a class="nav-item" href="../venue-earnings/index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16.5 14.5h1.5"/></svg>
+            <span class="lbl">Earnings</span>
+          </a>
+        </div>
+      </nav>
+      <div class="nav-foot">
+        <a class="nav-item" href="../venue-settings/index.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18 6l-2 2M8 16l-2 2M18 18l-2-2M8 8L6 6"/></svg>
+          <span class="lbl">Settings</span>
+        </a>
+        <div class="venue-chip">
+          <span class="ava">GE</span>
+          <span class="vt"><span class="vn">Greenpoint Escape Co.</span><br><span class="vs">Founding venue</span></span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== Main ===== -->
+    <main class="main">
+      <a class="back" href="../venue-dashboard/index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 6l-6 6 6 6"/></svg>
+        Back to dashboard
+      </a>
+
+      <header class="topbar">
+        <div>
+          <div class="title">
+            <h1 class="greet">The Lost Vault</h1>
+            <span class="pill confirmed"><i></i>Confirmed</span>
+          </div>
+          <div class="sub">Thursday, June 25 at 2:00 PM, party of 5. Crew already paid.</div>
+        </div>
+      </header>
+
+      <section class="layout">
+        <!-- Details column -->
+        <div class="panel">
+          <div class="panel-head">
+            <h2 class="pt">Booking details</h2>
+            <div class="ps">Everything you need for arrival day</div>
+          </div>
+          <div class="details">
+            <div class="drow">
+              <div class="dk">Date and time</div>
+              <div class="dv">Thursday, June 25, 2:00 PM<div class="note">Arrival 1:45 PM, 15 minutes before the session</div></div>
+            </div>
+            <div class="drow">
+              <div class="dk">Experience</div>
+              <div class="dv">The Lost Vault</div>
+            </div>
+            <div class="drow">
+              <div class="dk">Group size</div>
+              <div class="dv num">5 guests</div>
+            </div>
+            <div class="drow">
+              <div class="dk">Crew leader</div>
+              <div class="dv">Maya R.</div>
+            </div>
+            <div class="drow">
+              <div class="dk">Confirmation reference</div>
+              <div class="dv"><span class="ref num">AVN-7K2Q</span></div>
+            </div>
+            <div class="drow">
+              <div class="dk">Amount</div>
+              <div class="dv">
+                <div class="amt-line"><span class="big num">$240</span><span class="paid-tag">Crew already paid</span></div>
+                <div class="note">As a founding venue you keep every dollar. No commission netted.</div>
+              </div>
+            </div>
+            <div class="drow">
+              <div class="dk">Notes</div>
+              <div class="dv">
+                <div class="notes">
+                  <div class="n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21s-7-4.35-7-10a4 4 0 017-2.65A4 4 0 0119 11c0 5.65-7 10-7 10z"/></svg>Celebrating a birthday.</div>
+                  <div class="n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>No accessibility needs flagged.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Roster + action column -->
+        <div class="side">
+          <div class="panel">
+            <div class="panel-head">
+              <h2 class="pt">Crew roster</h2>
+              <div class="ps">5 guests, led by Maya R.</div>
+            </div>
+            <div class="roster">
+              <div class="crew leader">
+                <span class="ava" style="background:var(--secondary)">M</span>
+                <div><div class="nm">Maya R.</div><div class="role">Crew leader</div></div>
+                <span class="lead-tag">Leader</span>
+              </div>
+              <div class="crew">
+                <span class="ava" style="background:#B5703E">T</span>
+                <div><div class="nm">Theo</div><div class="role">Crew member</div></div>
+              </div>
+              <div class="crew">
+                <span class="ava" style="background:#7A6E68">P</span>
+                <div><div class="nm">Priya</div><div class="role">Crew member</div></div>
+              </div>
+              <div class="crew">
+                <span class="ava" style="background:#3D8060">S</span>
+                <div><div class="nm">Sam</div><div class="role">Crew member</div></div>
+              </div>
+              <div class="crew">
+                <span class="ava" style="background:#A2462A">N</span>
+                <div><div class="nm">Nadia</div><div class="role">Crew member</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="action">
+              <h2 class="ah">Arrival</h2>
+              <div class="as" id="action-sub">Tap when this crew checks in. Payout releases after the session wraps.</div>
+              <button class="btn-arrive" id="arrive-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12l4 4 10-10"/></svg>
+                Mark crew arrived
+              </button>
+              <div class="arrive-note" id="arrive-note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12l4 4 10-10"/></svg>
+                <span><b>Marked arrived, 2:03 PM.</b> Payout releases after the session.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+<script>
+  // ===== Mark crew arrived: switches to a quiet done state =====
+  const btn = document.getElementById("arrive-btn");
+  const note = document.getElementById("arrive-note");
+  const sub = document.getElementById("action-sub");
+  let arrived = false;
+
+  btn.addEventListener("click", () => {
+    if (arrived) return;
+    arrived = true;
+    btn.classList.add("done");
+    btn.disabled = true;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12l4 4 10-10"/></svg> Crew arrived';
+    sub.textContent = "Checked in. Nothing more to do until the session wraps.";
+    note.classList.add("show");
+  });
+</script>
+</body>
+</html>

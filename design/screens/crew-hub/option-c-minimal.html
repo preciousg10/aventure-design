@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventure · Crew Hub — Option C (Minimal Crew List)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF6EE; --card:#FFFFFF; --primary:#E2693E; --secondary:#138A6B;
+    --success:#3D8060; --ink:#2A2521; --muted:#7A6E68; --divider:#ECE4D8;
+    --font-display:"Fraunces",Georgia,serif; --font-body:"Satoshi","Inter",Arial,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  body{background:#15110d;font-family:var(--font-body);display:flex;flex-direction:column;
+       align-items:center;gap:18px;padding:40px 0;min-height:100vh;color:var(--ink);}
+  .caption{color:#cdbfb0;font-size:13px;letter-spacing:.04em;}
+
+  .frame{width:390px;height:844px;background:var(--bg);border-radius:44px;overflow:hidden;
+         position:relative;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.55);}
+
+  .header{background:var(--secondary);color:#fff;flex:0 0 auto;}
+  .statusbar{height:59px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 8px;}
+  .statusbar .time{font-weight:700;font-size:15px;letter-spacing:.02em;}
+  .sys{display:flex;align-items:center;gap:6px;}
+  .topnav{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 20px 6px;}
+  .wordmark{font-family:var(--font-display);font-weight:600;font-size:23px;}
+  .bell{position:relative;}
+  .bell .dot{position:absolute;top:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:var(--primary);border:1.5px solid var(--secondary);}
+
+  .body{flex:1 1 auto;overflow-y:auto;padding:0;}
+  .body::-webkit-scrollbar{display:none;}
+
+  /* greeting takes top third */
+  .greeting{padding:34px 24px 24px;}
+  .greeting .eyebrow{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:500;margin-bottom:10px;}
+  .greeting h1{font-family:var(--font-display);font-weight:600;font-size:30px;line-height:1.12;color:var(--ink);}
+  .greeting h1 em{font-style:normal;color:var(--primary);}
+  .greeting p{font-size:15px;color:var(--muted);margin-top:10px;}
+
+  .list-label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:0 24px 6px;}
+
+  /* dividerless rows */
+  .row{display:flex;align-items:center;gap:14px;padding:16px 24px;border-top:1px solid var(--divider);cursor:pointer;}
+  .row:last-of-type{border-bottom:1px solid var(--divider);}
+  .avs{display:flex;align-items:center;flex:0 0 auto;}
+  .av{width:32px;height:32px;border-radius:50%;border:2px solid var(--bg);margin-left:-9px;
+      display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
+  .av:first-child{margin-left:0;}
+  .av.r-active{box-shadow:0 0 0 2px var(--primary);}
+  .av.r-idle{box-shadow:0 0 0 2px var(--divider);}
+  .mid{flex:1 1 auto;min-width:0;}
+  .name{font-family:var(--font-display);font-weight:600;font-size:16px;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .status-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
+  .dot-active{background:var(--success);}
+  .dot-waiting{background:var(--primary);}
+  .dot-none{background:var(--divider);}
+  .sub{font-size:13px;color:var(--muted);margin-top:3px;}
+  .chev{flex:0 0 auto;color:var(--muted);}
+
+  /* fixed CTA above tab bar */
+  .bottom{flex:0 0 auto;background:var(--bg);}
+  .cta-wrap{padding:14px 24px 14px;border-top:1px solid var(--divider);}
+  .cta{width:100%;height:52px;background:var(--primary);color:var(--ink);border:none;border-radius:14px;
+       font-family:var(--font-body);font-weight:500;font-size:15px;display:flex;align-items:center;
+       justify-content:center;gap:9px;cursor:pointer;box-shadow:0 6px 18px rgba(226,105,62,.32);}
+  .tabbar{height:60px;background:var(--card);border-top:0.5px solid var(--divider);display:flex;align-items:center;justify-content:space-around;padding-top:6px;}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;font-weight:500;}
+  .tab.active{color:var(--secondary);}
+  .home-ind{height:34px;display:flex;align-items:center;justify-content:center;background:var(--card);}
+  .home-ind i{width:134px;height:5px;border-radius:100px;background:rgba(42,37,33,.2);}
+</style>
+</head>
+<body>
+  <div class="caption">Aventure · Screen 10 — Crew Hub · <strong>Option C — Minimal Crew List</strong></div>
+  <div class="frame">
+
+    <div class="header">
+      <div class="statusbar">
+        <span class="time">9:41</span>
+        <span class="sys">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="#fff"><path d="M8.5 2C5.6 2 2.9 3.1 1 5l1.5 1.5C4 5 6.2 4 8.5 4S13 5 14.5 6.5L16 5c-1.9-1.9-4.6-3-7.5-3z"/><path d="M8.5 6c-1.6 0-3.1.6-4.2 1.7L8.5 12l4.2-4.3C11.6 6.6 10.1 6 8.5 6z"/></svg>
+          <svg width="26" height="12" viewBox="0 0 26 12"><rect x="0.5" y="0.5" width="22" height="11" rx="3" fill="none" stroke="#fff" stroke-opacity=".5"/><rect x="2" y="2" width="18" height="8" rx="1.5" fill="#fff"/><rect x="23.5" y="3.5" width="2" height="5" rx="1" fill="#fff" fill-opacity=".6"/></svg>
+        </span>
+      </div>
+      <div class="topnav">
+        <span class="wordmark">aventure</span>
+        <span class="bell">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="dot"></span>
+        </span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="greeting">
+        <div class="eyebrow">Tuesday · 6:42 PM</div>
+        <h1>Ready for a quest,<br><em>Zaydaan?</em></h1>
+        <p>You're in 3 crews · 1 is waiting on you</p>
+      </div>
+
+      <div class="list-label">Your crews</div>
+
+      <div class="row">
+        <div class="avs">
+          <div class="av r-active" style="background:#C8643F">ZM</div>
+          <div class="av r-active" style="background:#2D6A4F">KA</div>
+          <div class="av r-active" style="background:#B98A3E">JP</div>
+        </div>
+        <div class="mid">
+          <div class="name">The Usual Suspects <span class="status-dot dot-active"></span></div>
+          <div class="sub">Quest active · Stop 2 of 4</div>
+        </div>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A6E68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+
+      <div class="row">
+        <div class="avs">
+          <div class="av r-active" style="background:#3D8060">✓</div>
+          <div class="av r-idle" style="background:#cdbfb0">MA</div>
+          <div class="av r-idle" style="background:#cdbfb0">TO</div>
+        </div>
+        <div class="mid">
+          <div class="name">Frosh Week Forever <span class="status-dot dot-waiting"></span></div>
+          <div class="sub">Waiting for crew · 3 of 5 paid · 19h left</div>
+        </div>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A6E68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+
+      <div class="row">
+        <div class="avs">
+          <div class="av r-idle" style="background:#B98A3E">EC</div>
+          <div class="av r-idle" style="background:#C8643F">NV</div>
+          <div class="av r-idle" style="background:#2D6A4F">HK</div>
+        </div>
+        <div class="mid">
+          <div class="name">Sunday Run Club <span class="status-dot dot-none"></span></div>
+          <div class="sub">No quest yet · last quest 3 days ago</div>
+        </div>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A6E68" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <div class="cta-wrap">
+        <button class="cta">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2A2521" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6 4.4 2.3 7.2L12 16.6 5.7 21l2.3-7.2-6-4.4h7.6z"/></svg>
+          Start a quest
+        </button>
+      </div>
+      <div class="tabbar">
+        <div class="tab active">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+          Home
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7A6E68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          Memories
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7A6E68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="16 8 14 14 8 16 10 10"/></svg>
+          Explore
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7A6E68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+          Profile
+        </div>
+      </div>
+      <div class="home-ind"><i></i></div>
+    </div>
+
+  </div>
+</body>
+</html>

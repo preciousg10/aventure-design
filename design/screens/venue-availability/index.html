@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventure for Venues: Availability (Step 3 of 4)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+  /* ===== Golden Hour tokens (venue app) — mirrors design/tokens/tokens.css,
+          with --secondary overridden to the venue-app canonical #2D6A4F ===== */
+  :root{
+    --bg:#FBF6EE;
+    --card:#FFFFFF;
+    --primary:#E2693E;
+    --secondary:#2D6A4F;   /* venue-app canonical (consumer app uses #138A6B) */
+    --success:#3D8060;
+    --ink:#2A2521;
+    --muted:#7A6E68;
+    --divider:#ECE4D8;
+    --danger:#A2462A;      /* error text — warm, AA on card */
+    --font-display:"Fraunces",Georgia,serif;
+    --font-body:"Satoshi","Inter",Arial,sans-serif;
+    --radius-button:14px;
+    --radius-card:16px;
+    --radius-input:12px;
+    --radius-pill:100px;
+    --shadow-card:0 1px 2px rgba(42,37,33,0.05), 0 8px 24px rgba(42,37,33,0.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  /* Prototype is view-only: non-interactive text shows no I-beam and can't be selected. */
+  html{-webkit-tap-highlight-color:transparent;}
+  body{cursor:default;}
+  *{-webkit-user-select:none;user-select:none;}
+  input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;cursor:auto;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:16px;
+    line-height:1.4;
+    min-height:100vh;
+  }
+
+  .shell{
+    max-width:1040px;
+    margin:0 auto;
+    padding:40px 28px 64px;
+    display:grid;
+    grid-template-columns:320px 1fr;
+    gap:48px;
+    align-items:start;
+  }
+
+  /* ---- Left context panel ---- */
+  .context{position:sticky;top:40px;}
+  .wordmark{display:flex;align-items:baseline;gap:8px;margin-bottom:32px;}
+  .wordmark .name{font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--ink);}
+  .wordmark .tag{
+    font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;
+    color:var(--secondary);background:rgba(45,106,79,0.10);
+    padding:3px 8px;border-radius:var(--radius-pill);
+  }
+  .context h1{
+    font-family:var(--font-display);font-weight:600;font-size:28px;
+    line-height:1.2;color:var(--ink);margin-bottom:10px;
+  }
+  .context p.lede{color:var(--muted);font-size:15px;max-width:30ch;}
+
+  /* ---- Vertical stepper ---- */
+  .stepper{list-style:none;margin:28px 0 0;display:flex;flex-direction:column;gap:2px;}
+  .stepper li{display:flex;align-items:center;gap:12px;padding:8px 0;color:var(--muted);font-size:14px;font-weight:500;}
+  .stepper .dot{
+    width:24px;height:24px;border-radius:var(--radius-pill);
+    border:1.5px solid var(--divider);display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:700;color:var(--muted);background:var(--card);flex:0 0 auto;
+  }
+  .stepper li.active{color:var(--ink);}
+  .stepper li.active .dot{background:var(--secondary);border-color:var(--secondary);color:#fff;}
+  .stepper li.done{color:var(--ink);}
+  .stepper li.done .dot{background:var(--secondary);border-color:var(--secondary);color:#fff;}
+
+  /* ---- Form card ---- */
+  .form-card{
+    background:var(--card);
+    border:0.5px solid var(--divider);
+    border-radius:var(--radius-card);
+    box-shadow:var(--shadow-card);
+    padding:32px;
+    max-width:560px;
+  }
+  .form-card h2{font-family:var(--font-display);font-weight:600;font-size:22px;margin-bottom:6px;}
+  .concierge{
+    color:var(--muted);font-size:13px;margin-bottom:24px;
+    padding:10px 12px;background:var(--bg);border-radius:var(--radius-input);
+    border:0.5px solid var(--divider);
+  }
+
+  .section-label{
+    display:block;font-size:11px;font-weight:500;letter-spacing:0.07em;
+    text-transform:uppercase;color:var(--muted);margin:0 0 12px;
+  }
+
+  /* Non-interactive text should not show the text-edit I-beam */
+  h1,h2,.wordmark,.tag,.stepper,.section-label,.lede,.concierge,.help,.day-name,.closed-label,.overrides-empty,.ovr-meta{cursor:default;user-select:none;}
+
+  /* ---- Weekly hours: one row per day ---- */
+  .week{border-top:0.5px solid var(--divider);margin-bottom:28px;}
+  .day-row{
+    display:flex;align-items:flex-start;gap:16px;
+    padding:16px 0;border-bottom:0.5px solid var(--divider);
+  }
+  .day-head{display:flex;align-items:center;gap:12px;flex:0 0 150px;padding-top:6px;}
+  .day-name{font-size:15px;font-weight:500;color:var(--ink);}
+  .day-row.off .day-name{color:var(--muted);}
+
+  /* Toggle switch — jade when on (Golden Hour) */
+  .toggle{position:relative;display:inline-block;width:40px;height:24px;flex:0 0 auto;}
+  .toggle input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;}
+  .toggle .track{
+    position:absolute;inset:0;border-radius:var(--radius-pill);
+    background:var(--divider);transition:background .15s;
+  }
+  .toggle .knob{
+    position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(42,37,33,0.25);transition:transform .15s;
+  }
+  .toggle input:checked + .track{background:var(--secondary);}
+  .toggle input:checked + .track + .knob{transform:translateX(16px);}
+  .toggle input:focus-visible + .track{box-shadow:0 0 0 3px rgba(45,106,79,0.35);}
+
+  /* The right side of a day row: ranges + closed label */
+  .day-body{flex:1 1 auto;min-width:0;}
+  .closed-label{font-size:14px;color:var(--muted);padding-top:8px;}
+  .day-row.off .ranges,.day-row.off .add-range{display:none;}
+  .day-row:not(.off) .closed-label{display:none;}
+
+  .ranges{display:flex;flex-direction:column;gap:10px;}
+  .range{display:flex;align-items:center;gap:6px;}
+  .range input[type=time]{
+    flex:1 1 auto;min-width:0;height:44px;padding:0 8px;
+    font-family:var(--font-body);font-size:14px;color:var(--ink);
+    background:var(--card);border:1px solid var(--divider);border-radius:var(--radius-input);
+    transition:border-color .15s,box-shadow .15s;
+  }
+  /* Native picker indicator carries default margin that clips the AM/PM. Trim it. */
+  .range input[type=time]::-webkit-calendar-picker-indicator{
+    margin-left:2px;padding:0;width:14px;opacity:.5;
+  }
+  .range input[type=time]:focus{
+    outline:none;border-color:var(--secondary);box-shadow:0 0 0 3px rgba(45,106,79,0.18);
+  }
+  .range .dash{color:var(--muted);font-size:14px;flex:0 0 auto;}
+  .range.invalid input[type=time]{border-color:var(--danger);}
+  .range.invalid input[type=time]:focus{box-shadow:0 0 0 3px rgba(162,70,42,0.18);}
+
+  /* round icon buttons for add / remove a range */
+  .icon-btn{
+    flex:0 0 auto;width:34px;height:34px;border-radius:10px;
+    display:inline-flex;align-items:center;justify-content:center;
+    background:transparent;border:1px solid var(--divider);color:var(--secondary);
+    cursor:pointer;transition:background .15s,border-color .15s;
+  }
+  .icon-btn:hover{background:rgba(45,106,79,0.08);border-color:var(--secondary);}
+  .icon-btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(45,106,79,0.35);}
+  .icon-btn.remove{color:var(--muted);}
+  .icon-btn.remove:hover{color:var(--danger);border-color:var(--danger);background:rgba(162,70,42,0.06);}
+
+  .range-error{display:none;color:var(--danger);font-size:13px;margin-top:8px;font-weight:500;}
+  .day-row.has-error .range-error{display:block;}
+
+  .add-range{
+    display:inline-flex;align-items:center;gap:7px;margin-top:10px;
+    background:transparent;border:none;color:var(--secondary);
+    font-family:var(--font-body);font-weight:500;font-size:14px;cursor:pointer;
+    padding:4px 0;
+  }
+  .add-range:hover{text-decoration:underline;}
+  .add-range:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(45,106,79,0.35);border-radius:6px;}
+
+  /* ---- Date overrides ---- */
+  .overrides{border-top:0.5px solid var(--divider);padding-top:24px;}
+  .overrides .help{display:block;font-size:13px;color:var(--muted);margin:-4px 0 16px;}
+  .ovr-add{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:16px;}
+  .ovr-add input[type=date],.ovr-add input[type=time]{
+    height:44px;padding:0 12px;font-family:var(--font-body);font-size:15px;color:var(--ink);
+    background:var(--card);border:1px solid var(--divider);border-radius:var(--radius-input);
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .ovr-add input[type=date]{width:160px;}
+  .ovr-add input[type=time]{width:106px;}
+  .ovr-add input:focus{outline:none;border-color:var(--secondary);box-shadow:0 0 0 3px rgba(45,106,79,0.18);}
+  .ovr-add .seg{
+    display:inline-flex;border:1px solid var(--divider);border-radius:var(--radius-input);overflow:hidden;
+  }
+  .ovr-add .seg button{
+    background:var(--card);border:none;color:var(--muted);
+    font-family:var(--font-body);font-weight:500;font-size:14px;cursor:pointer;
+    padding:0 14px;height:44px;transition:background .15s,color .15s;
+  }
+  .ovr-add .seg button + button{border-left:1px solid var(--divider);}
+  .ovr-add .seg button.sel{background:var(--secondary);color:#fff;}
+  .ovr-add .seg button:focus-visible{outline:none;box-shadow:inset 0 0 0 2px rgba(45,106,79,0.45);}
+  .ovr-times{display:inline-flex;align-items:center;gap:8px;}
+  .ovr-times .dash{color:var(--muted);}
+  .ovr-times.hidden{display:none;}
+  .btn-add-ovr{
+    height:44px;padding:0 16px;white-space:nowrap;
+    background:transparent;color:var(--secondary);
+    border:1px solid var(--secondary);border-radius:var(--radius-input);
+    font-family:var(--font-body);font-weight:500;font-size:14px;cursor:pointer;transition:background .15s;
+  }
+  .btn-add-ovr:hover{background:rgba(45,106,79,0.08);}
+  .btn-add-ovr:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(45,106,79,0.35);}
+  .ovr-error{display:none;color:var(--danger);font-size:13px;margin:-6px 0 14px;font-weight:500;}
+  .ovr-error.show{display:block;}
+
+  .overrides-empty{font-size:14px;color:var(--muted);padding:4px 0;}
+  .ovr-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
+  .ovr-list li{
+    display:flex;align-items:center;gap:12px;
+    padding:10px 14px;background:var(--bg);border:0.5px solid var(--divider);border-radius:var(--radius-input);
+  }
+  .ovr-date{font-size:14px;font-weight:500;color:var(--ink);flex:0 0 auto;}
+  .ovr-meta{font-size:14px;color:var(--muted);flex:1 1 auto;min-width:0;}
+  .ovr-pill{
+    font-size:11px;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;
+    padding:3px 9px;border-radius:var(--radius-pill);flex:0 0 auto;
+  }
+  .ovr-pill.closed{color:var(--danger);background:rgba(162,70,42,0.10);}
+  .ovr-pill.open{color:var(--success);background:rgba(61,128,96,0.12);}
+  .ovr-remove{
+    flex:0 0 auto;width:30px;height:30px;border-radius:8px;
+    display:inline-flex;align-items:center;justify-content:center;
+    background:transparent;border:none;color:var(--muted);cursor:pointer;transition:color .15s,background .15s;
+  }
+  .ovr-remove:hover{color:var(--danger);background:rgba(162,70,42,0.06);}
+  .ovr-remove:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(162,70,42,0.25);}
+
+  /* slot-based venue helper note */
+  .note{
+    display:flex;gap:10px;align-items:flex-start;
+    margin:24px 0 8px;padding:12px 14px;
+    background:var(--bg);border:0.5px solid var(--divider);border-radius:var(--radius-input);
+    font-size:13px;color:var(--muted);
+  }
+  .note svg{color:var(--secondary);flex:0 0 auto;margin-top:1px;}
+
+  .btn-primary{
+    width:100%;height:52px;margin-top:20px;
+    background:var(--primary);color:var(--ink);  /* never white on terracotta */
+    font-family:var(--font-body);font-weight:500;font-size:15px;
+    border:none;border-radius:var(--radius-button);cursor:pointer;
+    transition:filter .15s;
+  }
+  .btn-primary:hover{filter:brightness(0.97);}
+  .btn-primary:disabled{opacity:.7;cursor:progress;}
+  .btn-primary:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(42,37,33,0.45);}
+
+  .hidden{display:none;}
+
+  /* ---- Responsive ---- */
+  @media (max-width:760px){
+    .shell{grid-template-columns:1fr;gap:28px;padding:28px 20px 48px;}
+    .context{position:static;}
+    .context p.lede{max-width:none;}
+    .stepper{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin-top:18px;}
+    .stepper li{padding:0;}
+    .form-card{padding:24px 20px;max-width:none;}
+    .day-row{flex-direction:column;gap:10px;}
+    .day-head{flex:1 1 auto;padding-top:0;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+  <main class="shell">
+    <aside class="context">
+      <div class="wordmark">
+        <span class="name">Aventure</span>
+        <span class="tag">for venues</span>
+      </div>
+      <h1>When are you open?</h1>
+      <p class="lede">These hours tell our booking engine when to send you crews. Set them once, change them anytime.</p>
+      <ol class="stepper" aria-label="Onboarding progress">
+        <li class="done"><span class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>Basics</li>
+        <li class="done"><span class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>Offerings</li>
+        <li class="active"><span class="dot">3</span>Availability</li>
+        <li><span class="dot">4</span>Done</li>
+      </ol>
+    </aside>
+
+    <section class="form-card">
+      <h2>Weekly hours</h2>
+      <p class="concierge">Setting this up for a venue in person? Fill in their normal week, then hand it over to fine-tune.</p>
+
+      <form id="v3form" novalidate>
+        <span class="section-label">Standard week</span>
+        <div class="week" id="week"><!-- day rows injected here --></div>
+
+        <div class="overrides">
+          <span class="section-label">Date overrides</span>
+          <span class="help">Holidays, private events, or one-off closures. These beat the weekly hours for that day.</span>
+
+          <div class="ovr-add">
+            <input type="date" id="ovr-date" aria-label="Override date">
+            <div class="seg" role="group" aria-label="Open or closed on this date">
+              <button type="button" id="ovr-closed" class="sel" aria-pressed="true">Closed</button>
+              <button type="button" id="ovr-open" aria-pressed="false">Open</button>
+            </div>
+            <span class="ovr-times hidden" id="ovr-times">
+              <input type="time" id="ovr-from" value="10:00" aria-label="Override open time">
+              <span class="dash">to</span>
+              <input type="time" id="ovr-to" value="16:00" aria-label="Override close time">
+            </span>
+            <button type="button" class="btn-add-ovr" id="ovr-add-btn">Add date</button>
+          </div>
+          <span class="ovr-error" id="ovr-error">Pick a date, and make sure the close time is after the open time.</span>
+
+          <p class="overrides-empty" id="ovr-empty">No date overrides yet.</p>
+          <ul class="ovr-list" id="ovr-list"></ul>
+        </div>
+
+        <div class="note">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span>Running an escape room or other slot-based venue? These hours set the bookable window. The exact start times come from each offering you listed.</span>
+        </div>
+
+        <button type="submit" class="btn-primary" id="submit-btn">Continue</button>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    // Stub only — no backend, no network. All local DOM.
+
+    // ----- Weekly-hours model: sensible defaults -----
+    // Mon-Fri 10:00-18:00, Sat 10:00-16:00, Sun closed.
+    const DAYS = [
+      { key:'mon', name:'Monday',    open:true,  ranges:[['10:00','18:00']] },
+      { key:'tue', name:'Tuesday',   open:true,  ranges:[['10:00','18:00']] },
+      { key:'wed', name:'Wednesday', open:true,  ranges:[['10:00','18:00']] },
+      { key:'thu', name:'Thursday',  open:true,  ranges:[['10:00','18:00']] },
+      { key:'fri', name:'Friday',    open:true,  ranges:[['10:00','18:00']] },
+      { key:'sat', name:'Saturday',  open:true,  ranges:[['10:00','16:00']] },
+      { key:'sun', name:'Sunday',    open:false, ranges:[['10:00','16:00']] },
+    ];
+
+    const week = document.getElementById('week');
+    const ICON_ADD = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+    const ICON_X   = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+
+    function makeRange(from, to){
+      const row = document.createElement('div');
+      row.className = 'range';
+      row.innerHTML =
+        '<input type="time" class="from" value="'+from+'" aria-label="Opens at">' +
+        '<span class="dash">to</span>' +
+        '<input type="time" class="to" value="'+to+'" aria-label="Closes at">' +
+        '<button type="button" class="icon-btn remove" aria-label="Remove this time range">'+ICON_X+'</button>';
+      row.querySelector('.remove').addEventListener('click', () => {
+        const ranges = row.closest('.ranges');
+        // Keep at least one range while the day is open.
+        if (ranges.querySelectorAll('.range').length > 1){
+          row.remove();
+          validateDay(row.closest('.day-row'));
+        }
+      });
+      row.querySelectorAll('input').forEach(i =>
+        i.addEventListener('change', () => validateDay(row.closest('.day-row'))));
+      return row;
+    }
+
+    DAYS.forEach(day => {
+      const row = document.createElement('div');
+      row.className = 'day-row' + (day.open ? '' : ' off');
+      row.dataset.key = day.key;
+
+      const head = document.createElement('div');
+      head.className = 'day-head';
+      head.innerHTML =
+        '<label class="toggle">' +
+          '<input type="checkbox" '+(day.open?'checked':'')+' aria-label="'+day.name+' open">' +
+          '<span class="track"></span><span class="knob"></span>' +
+        '</label>' +
+        '<span class="day-name">'+day.name+'</span>';
+
+      const body = document.createElement('div');
+      body.className = 'day-body';
+      body.innerHTML =
+        '<span class="closed-label">Closed</span>' +
+        '<div class="ranges"></div>' +
+        '<span class="range-error">Closing time must be later than opening time.</span>' +
+        '<button type="button" class="add-range">'+ICON_ADD+' Add hours</button>';
+
+      const ranges = body.querySelector('.ranges');
+      day.ranges.forEach(r => ranges.appendChild(makeRange(r[0], r[1])));
+
+      // Toggle open/closed
+      const toggle = head.querySelector('input');
+      toggle.addEventListener('change', () => {
+        row.classList.toggle('off', !toggle.checked);
+        if (!toggle.checked) row.classList.remove('has-error');
+        else validateDay(row);
+      });
+
+      // Add a second (split) range
+      body.querySelector('.add-range').addEventListener('click', () => {
+        ranges.appendChild(makeRange('19:00','22:00'));
+      });
+
+      row.appendChild(head);
+      row.appendChild(body);
+      week.appendChild(row);
+    });
+
+    // A day is valid if, for every range, "to" > "from".
+    function validateDay(row){
+      if (row.classList.contains('off')){ row.classList.remove('has-error'); return true; }
+      let ok = true;
+      row.querySelectorAll('.range').forEach(r => {
+        const from = r.querySelector('.from').value;
+        const to = r.querySelector('.to').value;
+        const bad = from && to && to <= from;
+        r.classList.toggle('invalid', bad);
+        if (bad) ok = false;
+      });
+      row.classList.toggle('has-error', !ok);
+      return ok;
+    }
+
+    // ----- Date overrides -----
+    const ovrDate   = document.getElementById('ovr-date');
+    const ovrClosed = document.getElementById('ovr-closed');
+    const ovrOpen   = document.getElementById('ovr-open');
+    const ovrTimes  = document.getElementById('ovr-times');
+    const ovrFrom   = document.getElementById('ovr-from');
+    const ovrTo     = document.getElementById('ovr-to');
+    const ovrAddBtn = document.getElementById('ovr-add-btn');
+    const ovrError  = document.getElementById('ovr-error');
+    const ovrEmpty  = document.getElementById('ovr-empty');
+    const ovrList   = document.getElementById('ovr-list');
+
+    let ovrMode = 'closed';
+    function setMode(mode){
+      ovrMode = mode;
+      ovrClosed.classList.toggle('sel', mode === 'closed');
+      ovrOpen.classList.toggle('sel', mode === 'open');
+      ovrClosed.setAttribute('aria-pressed', mode === 'closed');
+      ovrOpen.setAttribute('aria-pressed', mode === 'open');
+      ovrTimes.classList.toggle('hidden', mode !== 'open');
+    }
+    ovrClosed.addEventListener('click', () => setMode('closed'));
+    ovrOpen.addEventListener('click', () => setMode('open'));
+
+    function formatDate(iso){
+      // iso = YYYY-MM-DD. Build a label without timezone surprises.
+      const [y,m,d] = iso.split('-').map(Number);
+      const dt = new Date(y, m-1, d);
+      return dt.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+    }
+
+    function renderOverride(iso, mode, from, to){
+      const li = document.createElement('li');
+      const meta = mode === 'open' ? (from + ' to ' + to) : 'Closed all day';
+      li.innerHTML =
+        '<span class="ovr-date">'+formatDate(iso)+'</span>' +
+        '<span class="ovr-pill '+mode+'">'+(mode === 'open' ? 'Open' : 'Closed')+'</span>' +
+        '<span class="ovr-meta">'+meta+'</span>' +
+        '<button type="button" class="ovr-remove" aria-label="Remove override">'+ICON_X+'</button>';
+      li.querySelector('.ovr-remove').addEventListener('click', () => {
+        li.remove();
+        if (!ovrList.querySelector('li')) ovrEmpty.classList.remove('hidden');
+      });
+      ovrList.appendChild(li);
+      ovrEmpty.classList.add('hidden');
+    }
+
+    ovrAddBtn.addEventListener('click', () => {
+      const iso = ovrDate.value;
+      const timesBad = ovrMode === 'open' && ovrFrom.value && ovrTo.value && ovrTo.value <= ovrFrom.value;
+      if (!iso || timesBad){
+        ovrError.classList.add('show');
+        return;
+      }
+      ovrError.classList.remove('show');
+      renderOverride(iso, ovrMode, ovrFrom.value, ovrTo.value);
+      // Reset the add row for the next entry.
+      ovrDate.value = '';
+      setMode('closed');
+    });
+
+    // ----- Submit (stub) -----
+    const form = document.getElementById('v3form');
+    const submitBtn = document.getElementById('submit-btn');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      // Validate every open day's ranges.
+      let allOk = true;
+      let firstBad = null;
+      document.querySelectorAll('.day-row').forEach(row => {
+        if (!validateDay(row)){
+          allOk = false;
+          if (!firstBad) firstBad = row.querySelector('.range.invalid input');
+        }
+      });
+      if (!allOk){
+        firstBad?.focus();
+        return;
+      }
+      // Stub: real save is a backend concern (Supabase). Advance to V4.
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving…';
+      setTimeout(() => {
+        window.location.href = '../venue-onboarding-done/index.html';
+      }, 700);
+    });
+  </script>
+</body>
+</html>

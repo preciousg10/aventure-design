@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventure for Venues: Log in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF6EE; --card:#FFFFFF; --primary:#E2693E; --secondary:#2D6A4F;
+    --success:#3D8060; --ink:#2A2521; --muted:#7A6E68; --divider:#ECE4D8; --danger:#A2462A;
+    --font-display:"Fraunces",Georgia,serif; --font-body:"Satoshi","Inter",Arial,sans-serif;
+    --radius-button:14px; --radius-card:16px; --radius-input:12px; --radius-pill:100px;
+    --shadow-card:0 1px 2px rgba(42,37,33,0.05), 0 8px 24px rgba(42,37,33,0.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  /* Prototype is view-only: non-interactive text shows no I-beam and can't be selected. */
+  html{-webkit-tap-highlight-color:transparent;}
+  body{cursor:default;}
+  *{-webkit-user-select:none;user-select:none;}
+  input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;cursor:auto;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.4;min-height:100vh;}
+  .shell{max-width:1040px;margin:0 auto;padding:40px 28px 64px;display:grid;grid-template-columns:320px 1fr;gap:48px;align-items:start;}
+  .context{position:sticky;top:40px;}
+  .wordmark{display:flex;align-items:baseline;gap:8px;margin-bottom:28px;}
+  .wordmark .name{font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--ink);}
+  .wordmark .tag{font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--secondary);background:rgba(45,106,79,0.10);padding:3px 8px;border-radius:var(--radius-pill);}
+  .context h1{font-family:var(--font-display);font-weight:600;font-size:28px;line-height:1.2;color:var(--ink);margin-bottom:12px;}
+  .context p.lede{color:var(--muted);font-size:15px;max-width:34ch;}
+  .form-card{background:var(--card);border:0.5px solid var(--divider);border-radius:var(--radius-card);box-shadow:var(--shadow-card);padding:32px;max-width:480px;}
+  .form-card h2{font-family:var(--font-display);font-weight:600;font-size:22px;margin-bottom:6px;}
+  .form-card .sub{color:var(--muted);font-size:14px;margin-bottom:24px;}
+  .field{margin-bottom:20px;}
+  .field > label,.field-head > label{display:block;font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+  .field-head{display:flex;justify-content:space-between;align-items:baseline;}
+  .field-head a{font-size:13px;color:var(--secondary);font-weight:500;text-decoration:none;text-transform:none;letter-spacing:0;}
+  .field-head a:hover{text-decoration:underline;}
+  input[type=email],input[type=password]{width:100%;height:48px;padding:0 14px;font-family:var(--font-body);font-size:16px;color:var(--ink);background:var(--card);border:1px solid var(--divider);border-radius:var(--radius-input);transition:border-color .15s,box-shadow .15s;}
+  input:focus{outline:none;border-color:var(--secondary);box-shadow:0 0 0 3px rgba(45,106,79,0.18);}
+  .field.invalid input{border-color:var(--danger);}
+  .field.invalid input:focus{box-shadow:0 0 0 3px rgba(162,70,42,0.18);}
+  .error-msg{display:none;color:var(--danger);font-size:13px;margin-top:6px;font-weight:500;}
+  .field.invalid .error-msg{display:block;}
+  .pw-row{position:relative;}
+  .pw-row input{padding-right:64px;}
+  .pw-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;height:44px;background:transparent;border:none;color:var(--secondary);font-family:var(--font-body);font-weight:500;font-size:13px;cursor:pointer;padding:0 10px;border-radius:10px;}
+  .pw-toggle:hover{background:rgba(45,106,79,0.08);}
+  .pw-toggle:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(45,106,79,0.35);}
+  .btn-primary{width:100%;height:52px;margin-top:4px;background:var(--primary);color:var(--ink);font-family:var(--font-body);font-weight:500;font-size:15px;border:none;border-radius:var(--radius-button);cursor:pointer;transition:filter .15s;}
+  .btn-primary:hover{filter:brightness(0.97);}
+  .btn-primary:disabled{opacity:.7;cursor:progress;}
+  .btn-primary:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(42,37,33,0.45);}
+  .note{margin-top:18px;font-size:13px;color:var(--muted);}
+  h1,h2,.wordmark,.tag,.lede,.sub,.field>label,.note{cursor:default;user-select:none;}
+  @media (max-width:760px){.shell{grid-template-columns:1fr;gap:24px;padding:28px 20px 48px;}.context{position:static;}.context p.lede{max-width:none;}.form-card{padding:24px 20px;max-width:none;}}
+</style>
+</head>
+<body>
+  <main class="shell">
+    <aside class="context">
+      <div class="wordmark"><span class="name">Aventure</span><span class="tag">for venues</span></div>
+      <h1>Welcome back</h1>
+      <p class="lede">Log in to see today's bookings and manage your calendar.</p>
+    </aside>
+
+    <section class="form-card">
+      <h2>Log in</h2>
+      <p class="sub">Use the email you set up your venue with.</p>
+      <form id="loginForm" novalidate>
+        <div class="field" id="f-email">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" autocomplete="email" inputmode="email" required>
+          <span class="error-msg">Enter a valid email address.</span>
+        </div>
+        <div class="field" id="f-password">
+          <div class="field-head">
+            <label for="password">Password</label>
+            <a href="../venue-auth-forgot/index.html">Forgot password?</a>
+          </div>
+          <div class="pw-row">
+            <input type="password" id="password" name="password" autocomplete="current-password" required>
+            <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Show password">Show</button>
+          </div>
+          <span class="error-msg">Enter your password.</span>
+        </div>
+        <button type="submit" class="btn-primary" id="submit-btn">Log in</button>
+      </form>
+      <p class="note">Founding venues join by invite. If you spoke with our team and don't have an account yet, use the link Ryan emailed you.</p>
+    </section>
+  </main>
+
+  <script>
+    // Stub only — no backend (Supabase Auth later).
+    const form = document.getElementById('loginForm');
+    const emailInput = document.getElementById('email');
+    const pwInput = document.getElementById('password');
+    const pwToggle = document.getElementById('pw-toggle');
+    const submitBtn = document.getElementById('submit-btn');
+    const emailOk = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+    function validateField(input){
+      const field = input.closest('.field');
+      let ok = input === emailInput ? emailOk(input.value) : input.value.trim() !== '';
+      field.classList.toggle('invalid', !ok);
+      return ok;
+    }
+    form.querySelectorAll('input').forEach(el => el.addEventListener('blur', () => { if (el.required) validateField(el); }));
+    pwToggle.addEventListener('click', () => {
+      const showing = pwInput.type === 'text';
+      pwInput.type = showing ? 'password' : 'text';
+      pwToggle.textContent = showing ? 'Show' : 'Hide';
+      pwToggle.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+    });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const results = [...form.querySelectorAll('[required]')].map(validateField);
+      if (results.includes(false)){ form.querySelector('.field.invalid input')?.focus(); return; }
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Logging in…';
+      // Returning venue lands on their dashboard (V5).
+      setTimeout(() => { window.location.href = '../venue-dashboard/index.html'; }, 700);
+    });
+  </script>
+</body>
+</html>
